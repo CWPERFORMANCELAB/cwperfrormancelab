@@ -2,6 +2,11 @@
   "name": "cw-performance-lab",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.19.1",
+  "engines": {
+    "node": "24.x",
+    "npm": ">=11.19.1 <12"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "tsx scripts/prebuild.ts && next build",
@@ -62,6 +67,7 @@
     "@types/react-dom": "^19",
     "dotenv": "^18.0.8",
     "drizzle-kit": "^0.31.11",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",

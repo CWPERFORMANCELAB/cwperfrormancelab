@@ -188,3 +188,18 @@ Non-obvious choices, newest last.
     transaction pooler. Locally it still works as before. Pool default stays at 2 (declined). Test:
     `tests/env.test.ts`, with 3 new cases (production and preview reject it, local allows it); 2 failed before the change.
     The fix-3 assertion in `tests/db-invariants.test.ts` that allowed an explicit opt-in off-local now expects a throw.
+39. **Pinned Node/npm and a consistent lock file.** The cause of `npm ci` failing on npm 10 ("Missing: esbuild@0.28.2
+    from lock file") was an inconsistent lock file. Vite 8 has an optional peer `esbuild@^0.27 || ^0.28`, but the
+    lock file hoisted drizzle-kit's `esbuild@0.25.12` to the root (`npm ls` reported it as `invalid`). npm 11 tolerated
+    this; npm 10 tried to place 0.28.2 and found it missing. Fix: `esbuild@^0.28.2` is an explicit devDependency. That
+    is the version tsx already locked, so no new package arrives; 0.28.2 is hoisted and drizzle-kit keeps a nested
+    0.25.12. `npm ls --all` is now clean. The lock file was repaired from the existing one rather than regenerated
+    from scratch: a fresh resolution would have pulled in every transitive release from the last few days, and a
+    `--before` cutoff can't work because direct dependencies (Next 16.4.0, PGlite) are themselves newer than two
+    weeks. `package.json` pins `packageManager: npm@11.19.1` (the npm bundled with Node 24.22.0) and
+    `engines: { node: "24.x", npm: ">=11.19.1 <12" }`. Vercel reads `engines.node` to choose Node 24, the active
+    LTS. `.nvmrc` says 24. `engine-strict` is deliberately not set, so a different local Node only warns. Verified:
+    clean clones run `npm ci` successfully with npm 10.9.9 and npm 11.19.1 (old lock file reproduced the failure),
+    and `npm run check` passes in the clean clone under Node 24.22.0. Note: npm 11.19 no longer runs dependency install
+    scripts by default. The 5 it lists (esbuild ×3, fsevents, unrs-resolver) are optional optimisations; the
+    platform binaries come from optional dependencies, and check, build and e2e all pass without them.

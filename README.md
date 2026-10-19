@@ -18,7 +18,7 @@ Docs: [PLAN.md](PLAN.md) · [DECISIONS.md](DECISIONS.md) · [CLIENT_TODO.md](CLI
 
 ## Quick start (local)
 
-Requires Node 20+. No Docker, database, Stripe or email accounts needed locally.
+Requires **Node 24 LTS and npm 11.19.1+** (pinned in `package.json` `engines`/`packageManager`; `nvm use` reads `.nvmrc`). Older npm versions may fail `npm ci`. No Docker, database, Stripe or email accounts needed locally.
 
 ```bash
 npm install
