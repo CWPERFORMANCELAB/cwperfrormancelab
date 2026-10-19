@@ -140,3 +140,16 @@ Non-obvious choices, newest last.
     `auth.admin_reset` to the audit log with the operator's OS username. A web "forgot password" was rejected on
     purpose: it would make the inbox the weakest link to client health records. Procedure in `RUNBOOK.md`.
     Test: `tests/admin-reset.test.ts`, plus a manual CLI run against a scratch database.
+35. **Fix 10: HSTS and CSP.** `src/lib/security-headers.ts`, wired in `next.config.ts` `headers()`. The CSP has no
+    nonces (Next.js "without nonces" pattern), because nonces would make every page dynamic and lose prerendering and
+    PPR. `'unsafe-inline'` is allowed for scripts and styles, but every source is allowlisted: self, Stripe (js, api,
+    checkout, hooks), Cloudflare Turnstile, the Google Maps embed, and Plausible only when configured.
+    `object-src 'none'`, `base-uri 'self'`, `form-action 'self' https://checkout.stripe.com`. Public pages get
+    `frame-ancestors 'self'` and SAMEORIGIN. `/admin/*` and `/api/admin/*` get `frame-ancestors 'none'` and
+    `X-Frame-Options: DENY`; those rules come last because the last matching rule wins for the same header.
+    HSTS: `max-age=63072000; includeSubDomains; preload`. Permissions-Policy keeps `payment` available to Stripe for
+    Apple/Google Pay. Checked in a browser on a production build: the contact map renders; a full booking (slot picker,
+    form, server action, checkout redirect, confirmation) and the admin sign-in all work with no CSP violations in the
+    console. Real Stripe Checkout and Apple Pay can't be tested without Stripe keys, so they're part of fix 12.
+    Tests: `tests/security-headers.test.ts` (policy contents) and `tests/e2e/security-headers.e2e.test.ts` (headers
+    the production server actually sends, including admin pages and API).
