@@ -38,7 +38,8 @@ export interface PaymentProvider {
   refund(providerPaymentId: string, amountPence: number, reason?: string, idempotencyKey?: string): Promise<{ refundId: string }>;
   /** All refunds the provider holds for a payment (used to reconcile charge.refunded webhooks). */
   listRefunds(providerPaymentId: string): Promise<{ id: string; amount: number }[]>;
-  chargeSavedCard(args: ChargeSavedCardArgs): Promise<{ paymentId: string; status: "succeeded" | "failed"; error?: string }>;
+  /** `requires_action`: the bank wants the cardholder to authenticate (SCA) — can't be completed off-session. */
+  chargeSavedCard(args: ChargeSavedCardArgs): Promise<{ paymentId: string; status: "succeeded" | "failed" | "requires_action"; error?: string }>;
   /** Pull the current state of a checkout (used by reconciliation when a webhook was missed). */
   retrieveCheckout(sessionId: string): Promise<CompletedCheckout | { status: "open" | "expired" }>;
 }

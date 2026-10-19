@@ -5,7 +5,7 @@
 import { and, eq, lt, sql } from "drizzle-orm";
 import { business, hasBasrat } from "@config/business";
 import type { Db, DbOrTx } from "@/db/client";
-import { bookings, clients, paymentLinks, payments, refunds, vouchers, webhookEvents, type Payment } from "@/db/schema";
+import { bookings, clients, disputes, paymentLinks, payments, refunds, vouchers, webhookEvents, type Payment } from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { confirmBooking } from "@/lib/booking/service";
 import { formatLong } from "@/lib/time";
@@ -182,6 +182,45 @@ export async function handleCheckoutExpired(db: Db, sessionId: string) {
   if (p.voucherId) await db.update(vouchers).set({ status: "void" }).where(and(eq(vouchers.id, p.voucherId), eq(vouchers.status, "pending")));
 }
 
+/* ------------------------------------------------------------------ disputes */
+
+/** Chargebacks (PRE-DEPLOY-FIXES #7): recorded against the payment, shown in the dashboard, admin alerted. */
+export async function recordDispute(db: Db, type: string, obj: Record<string, unknown>) {
+  const id = obj.id as string;
+  const pi = typeof obj.payment_intent === "string" ? obj.payment_intent : (obj.payment_intent as { id?: string } | null)?.id;
+  const [p] = pi ? await db.select().from(payments).where(eq(payments.providerPaymentId, pi)) : [];
+  const closed = type === "charge.dispute.closed";
+  const values = {
+    providerDisputeId: id,
+    paymentId: p?.id ?? null,
+    amountPence: Number(obj.amount ?? 0),
+    reason: (obj.reason as string) ?? null,
+    status: (obj.status as string) ?? (closed ? "closed" : "needs_response"),
+    evidenceDueBy: (obj.evidence_details as { due_by?: number } | undefined)?.due_by ? new Date((obj.evidence_details as { due_by: number }).due_by * 1000) : null,
+    closedAt: closed ? new Date() : null,
+  };
+  const { paymentId: _pid, providerDisputeId: _id, ...update } = values;
+  void _pid;
+  void _id;
+  await db.insert(disputes).values(values).onConflictDoUpdate({ target: disputes.providerDisputeId, set: { ...update, updatedAt: new Date() } });
+  if (type !== "charge.dispute.updated") {
+    const [c] = p?.clientId ? await db.select().from(clients).where(eq(clients.id, p.clientId)) : [];
+    await alertAdmin(db, closed ? "admin_dispute_closed" : "admin_dispute", {
+      bookingId: p?.bookingId ?? undefined,
+      vars: {
+        disputeAmount: formatPence(values.amountPence),
+        disputeReason: (values.reason ?? "unspecified").replace(/_/g, " "),
+        disputeStatus: values.status.replace(/_/g, " "),
+        clientFullName: c ? `${c.firstName} ${c.lastName}` : "Unknown client",
+        evidenceDueBy: values.evidenceDueBy ? formatLong(values.evidenceDueBy) : "see Stripe",
+        adminUrl: siteUrl("/admin/payments"),
+      },
+      dedupeKey: `dispute:${id}:${closed ? "closed" : "created"}`,
+    });
+  }
+  await audit(db, { actor: "system", action: `payment.${type.replace("charge.", "")}`, entityType: "payment", entityId: p?.id ?? id, meta: { disputeId: id, status: values.status } });
+}
+
 /* ------------------------------------------------------------------- refunds */
 
 /** Record any provider refunds for a payment that aren't in our ledger yet. Locked + idempotent. */
@@ -300,6 +339,27 @@ export async function chargeFeeToSavedCard(db: Db, bookingId: string, amountPenc
     description: `${description} · ${business.name}`,
     metadata: { bookingId },
   });
+  // SCA: the bank wants the client to authenticate, which can't happen off-session. Instead of silently failing,
+  // send them a payment link for the same amount and tell the admin (PRE-DEPLOY-FIXES #7).
+  let paymentLinkId: string | null = null;
+  if (r.status === "requires_action") {
+    const { createPaymentLink } = await import("@/lib/payment-links");
+    const { link } = await createPaymentLink(db, {
+      adminEmail: "system",
+      amountPence,
+      description: `${description} (card authentication needed)`,
+      recipientName: `${c.firstName} ${c.lastName}`,
+      recipientEmail: c.email,
+      clientId: c.id,
+      holdHours: 24 * 7,
+    });
+    paymentLinkId = link.id;
+    await alertAdmin(db, "admin_sca_fee", {
+      bookingId,
+      vars: { clientFullName: `${c.firstName} ${c.lastName}`, amount: formatPence(amountPence), feeDescription: description },
+      dedupeKey: `sca:${bookingId}:${kind}:${amountPence}`,
+    });
+  }
   await db.insert(payments).values({
     bookingId,
     clientId: c.id,
@@ -309,7 +369,10 @@ export async function chargeFeeToSavedCard(db: Db, bookingId: string, amountPenc
     amountPence: r.status === "succeeded" ? amountPence : 0,
     status: r.status === "succeeded" ? "succeeded" : "failed",
     description,
-    metadata: r.error ? { error: r.error } : {},
+    metadata: {
+      ...(r.error ? { error: r.error } : {}),
+      ...(r.status === "requires_action" ? { authenticationRequired: true, paymentLinkId, requestedPence: amountPence } : {}),
+    },
   });
   if (r.status === "succeeded" && kind === "payment") {
     await db.update(bookings).set({ paidPence: sql`${bookings.paidPence} + ${amountPence}` }).where(eq(bookings.id, bookingId));
@@ -382,6 +445,11 @@ export async function processStripeEvent(db: Db, event: { id: string; type: stri
       case "checkout.session.expired":
       case "checkout.session.async_payment_failed":
         await handleCheckoutExpired(db, obj.id as string);
+        break;
+      case "charge.dispute.created":
+      case "charge.dispute.updated":
+      case "charge.dispute.closed":
+        await recordDispute(db, event.type, obj);
         break;
       case "charge.refunded": {
         // Keep the ledger in sync with refunds made outside the app (e.g. the Stripe dashboard). Refunds the app made

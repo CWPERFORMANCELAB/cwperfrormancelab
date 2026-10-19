@@ -91,10 +91,16 @@ export class StripeProvider implements PaymentProvider {
         description: args.description,
         metadata: args.metadata,
       });
-      return { paymentId: pi.id, status: pi.status === "succeeded" ? ("succeeded" as const) : ("failed" as const) };
+      if (pi.status === "succeeded") return { paymentId: pi.id, status: "succeeded" as const };
+      if (pi.status === "requires_action") return { paymentId: pi.id, status: "requires_action" as const, error: "authentication_required" };
+      return { paymentId: pi.id, status: "failed" as const };
     } catch (err) {
-      const e = err as { message?: string; raw?: { payment_intent?: { id?: string } } };
-      return { paymentId: e.raw?.payment_intent?.id ?? "", status: "failed" as const, error: e.message };
+      // Under SCA (common with UK cards) an off-session charge fails with code authentication_required.
+      const e = err as { message?: string; code?: string; raw?: { code?: string; payment_intent?: { id?: string; status?: string } } };
+      const code = e.code ?? e.raw?.code;
+      const piStatus = e.raw?.payment_intent?.status;
+      const needsAuth = code === "authentication_required" || piStatus === "requires_action";
+      return { paymentId: e.raw?.payment_intent?.id ?? "", status: needsAuth ? ("requires_action" as const) : ("failed" as const), error: code ?? e.message };
     }
   }
 

@@ -118,3 +118,12 @@ Non-obvious choices, newest last.
     Test: `tests/checkout-race.test.ts`. Three simultaneous deliveries give one `booking_confirmed` and two
     `already_processed`, with one confirmation email and one receipt; the slot-lost case refunds once. Both concurrent
     cases failed before the change.
+32. **Fix 7: disputes and off-session authentication.** New `disputes` table (unique Stripe dispute id, with RLS).
+    `charge.dispute.created/updated/closed` webhooks upsert it against the payment, email the admin on open and
+    close (with the evidence deadline), and the dashboard shows disputes on Payments (open-dispute banner) and on the
+    client profile. `StripeProvider.chargeSavedCard` now distinguishes `requires_action` (code
+    `authentication_required` or PaymentIntent `requires_action`) from a plain decline. On `requires_action`,
+    `chargeFeeToSavedCard` creates a 7-day payment link for the same amount, emails it to the client, alerts the admin
+    and records the attempt with `authenticationRequired` metadata; Payments lists these under "Waiting for client"
+    until paid. New templates reach existing databases through `ensureTemplates()` at boot and in `db:migrate`.
+    Webhook event list updated in README and GO-LIVE. Test: `tests/disputes-sca.test.ts`.

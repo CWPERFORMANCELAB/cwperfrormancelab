@@ -95,6 +95,8 @@ async function bootstrap(db: Db): Promise<Db> {
   const { applyClientDetails } = await import("@/lib/seed/apply");
   const { ensureAdminUser } = await import("@/lib/auth/bootstrap");
   await applyClientDetails(db, { onlyIfEmpty: true });
+  const { ensureTemplates } = await import("@/lib/seed/apply");
+  await ensureTemplates(db); // new alert templates reach existing databases
   await ensureAdminUser(db);
   return db;
 }

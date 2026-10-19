@@ -28,7 +28,7 @@ Tick everything before pointing the domain and Instagram at the new site.
 ## Payments
 - [ ] Stripe activated; payout account verified
 - [ ] Apple Pay domain verified; Google Pay enabled
-- [ ] Webhook endpoint added with the 5 events; `STRIPE_WEBHOOK_SECRET` set
+- [ ] Webhook endpoint added with the 8 events listed in README (checkout ×4, `charge.refunded`, `charge.dispute.*` ×3); `STRIPE_WEBHOOK_SECRET` set
 - [ ] **Live** keys in production (`check:placeholders -- --production` rejects test keys)
 - [ ] One real payment made and refunded from the dashboard
 

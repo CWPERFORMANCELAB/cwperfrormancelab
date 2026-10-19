@@ -7,7 +7,7 @@ import { ClientEditor } from "@/components/admin/forms";
 import { Badge, Card, PageHeader, Table, Td } from "@/components/admin/ui";
 import { Download, Plus } from "@/components/icons";
 import { getDb } from "@/db/client";
-import { bookings, clients, intakeForms, payments, services } from "@/db/schema";
+import { bookings, clients, disputes, intakeForms, payments, services } from "@/db/schema";
 import { listClients } from "@/lib/admin/clients";
 import { audit } from "@/lib/audit";
 import { requireAdmin } from "@/lib/auth";
@@ -28,6 +28,7 @@ async function Profile({ params }: { params: PageProps<"/admin/clients/[id]">["p
     db.select().from(payments).where(eq(payments.clientId, id)).orderBy(desc(payments.createdAt)),
     db.select().from(intakeForms).where(eq(intakeForms.clientId, id)).orderBy(desc(intakeForms.createdAt)),
   ]);
+  const clientDisputes = await db.select({ d: disputes }).from(disputes).innerJoin(payments, eq(payments.id, disputes.paymentId)).where(eq(payments.clientId, id)).orderBy(desc(disputes.createdAt));
   await audit(db, { actor: admin.email, action: "client.view", entityType: "client", entityId: id });
   const emergency = decryptJson<{ name: string; phone: string; relationship: string }>(c.emergencyContactEnc);
 
@@ -87,6 +88,22 @@ async function Profile({ params }: { params: PageProps<"/admin/clients/[id]">["p
               </Table>
             </div>
           </Card>
+          {clientDisputes.length > 0 && (
+            <Card title={`Disputes (${clientDisputes.length})`}>
+              <ul className="space-y-2 text-sm">
+                {clientDisputes.map(({ d }) => (
+                  <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger/25 bg-danger/5 p-3">
+                    <span>
+                      {formatPence(d.amountPence)} · <span className="capitalize">{(d.reason ?? "unspecified").replace(/_/g, " ")}</span>
+                    </span>
+                    <span className="text-xs capitalize text-ink/65">
+                      {d.status.replace(/_/g, " ")} · opened {formatLocal(d.createdAt, "d MMM yyyy")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
           <Card title={`Intake & consent forms (${forms.length})`}>
             {forms.length === 0 ? (
               <p className="text-sm text-ink/65">None yet.</p>

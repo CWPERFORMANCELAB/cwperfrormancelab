@@ -9,7 +9,7 @@
 import "./env";
 import path from "node:path";
 import { dbKind, getDb, verifyDbInvariants, type Db } from "../src/db/client";
-import { applyClientDetails } from "../src/lib/seed/apply";
+import { applyClientDetails, ensureTemplates } from "../src/lib/seed/apply";
 import { ensureAdminUser } from "../src/lib/auth/bootstrap";
 import * as schema from "../src/db/schema";
 
@@ -33,6 +33,8 @@ async function main() {
   await verifyDbInvariants(db);
   console.log("✓ btree_gist extension and bookings_no_overlap constraint present");
   await applyClientDetails(db, { onlyIfEmpty: true });
+  const added = await ensureTemplates(db);
+  if (added.length) console.log(`✓ Added notification templates: ${added.join(", ")}`);
   await ensureAdminUser(db);
   console.log("✓ Database ready");
   await close();

@@ -8,7 +8,8 @@ import { processStripeEvent } from "@/lib/payments/handlers";
  * (webhook_events table). Non-2xx makes Stripe retry, which is what we want on transient failure.
  *
  * Events to enable in the Stripe dashboard: checkout.session.completed, checkout.session.async_payment_succeeded,
- * checkout.session.async_payment_failed, checkout.session.expired, charge.refunded.
+ * checkout.session.async_payment_failed, checkout.session.expired, charge.refunded,
+ * charge.dispute.created, charge.dispute.updated, charge.dispute.closed.
  */
 export async function POST(req: NextRequest) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;

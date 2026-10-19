@@ -266,6 +266,24 @@ export const refunds = pgTable(
   (t) => [uniqueIndex("refunds_provider_refund_idx").on(t.providerRefundId)],
 );
 
+/** Chargebacks raised by a client's bank (charge.dispute.* webhooks). */
+export const disputes = pgTable(
+  "disputes",
+  {
+    id: uuidPk(),
+    providerDisputeId: text("provider_dispute_id").notNull(),
+    paymentId: uuid("payment_id").references(() => payments.id),
+    amountPence: integer("amount_pence").notNull(),
+    reason: text("reason"),
+    status: text("status").notNull(), // Stripe status: warning_needs_response | needs_response | under_review | won | lost …
+    evidenceDueBy: ts("evidence_due_by"),
+    closedAt: ts("closed_at"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("disputes_provider_idx").on(t.providerDisputeId), index("disputes_payment_idx").on(t.paymentId)],
+);
+
 export const vouchers = pgTable(
   "vouchers",
   {

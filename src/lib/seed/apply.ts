@@ -10,7 +10,7 @@
  */
 import { and, isNull, notInArray, sql } from "drizzle-orm";
 import { seedPractitioner, seedServices, seedSettings } from "@config/seed-settings";
-import type { Db } from "@/db/client";
+import type { Db, DbOrTx } from "@/db/client";
 import { notificationTemplates, practitioners, services, settings } from "@/db/schema";
 import { defaultTemplates } from "@/lib/notifications/defaults";
 import { seedServiceSchema, settingsSchemas, type SettingKey } from "@/lib/settings-schema";
@@ -21,6 +21,16 @@ export type ApplyReport = {
   servicesArchived: string[];
   templatesAdded: string[];
 };
+
+/** Insert any notification templates that don't exist yet (never overwrites dashboard edits). */
+export async function ensureTemplates(db: Db | DbOrTx) {
+  const added = await db
+    .insert(notificationTemplates)
+    .values(defaultTemplates.map((t) => ({ key: t.key, channel: t.channel, name: t.name, subject: t.subject ?? null, body: t.body })))
+    .onConflictDoNothing()
+    .returning({ key: notificationTemplates.key });
+  return added.map((a) => a.key);
+}
 
 export async function applyClientDetails(db: Db, opts: { onlyIfEmpty?: boolean } = {}): Promise<ApplyReport> {
   // Validate everything first so a typo in the config can't half-apply.

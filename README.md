@@ -111,7 +111,8 @@ Copy `.env.example` to `.env.local`. All optional locally; required in productio
 2. **Settings → Payment methods:** enable Cards, Apple Pay, Google Pay. Register the live domain for Apple Pay.
 3. **Developers → Webhooks:** add `https://<domain>/api/webhooks/stripe` with events
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
-   `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`.
+   `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`,
+   `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`.
    Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
 4. Swap test keys for live keys (`sk_live_…`, `pk_live_…`) in Vercel and redeploy.
 5. Make one real £1 test (temporary discount code) and refund it from the dashboard.

@@ -225,6 +225,46 @@ Amount paid: {{receiptAmount}}
 {{address}}`,
   },
   {
+    key: "admin_dispute",
+    channel: "email",
+    name: "Admin alert: payment disputed (chargeback)",
+    subject: "Action needed: {{clientFullName}} disputed a {{disputeAmount}} payment",
+    body: `A client's bank has opened a dispute (chargeback).
+
+Client: {{clientFullName}}
+Amount: {{disputeAmount}}
+Reason: {{disputeReason}}
+Status: {{disputeStatus}}
+Respond with evidence by: {{evidenceDueBy}}
+
+Respond in the Stripe dashboard (Payments → Disputes) with booking details, intake/consent and attendance records. Dashboard: {{adminUrl}}`,
+  },
+  {
+    key: "admin_dispute_closed",
+    channel: "email",
+    name: "Admin alert: dispute closed",
+    subject: "Dispute closed: {{disputeStatus}} ({{disputeAmount}})",
+    body: "The dispute from {{clientFullName}} for {{disputeAmount}} has closed with status: {{disputeStatus}}.\n\n{{adminUrl}}",
+  },
+  {
+    key: "admin_sca_fee",
+    channel: "email",
+    name: "Admin alert: card needs authentication",
+    subject: "{{clientFullName}}'s card needs authentication for {{amount}}",
+    body: `The saved card for {{clientFullName}} couldn't be charged {{amount}} ({{feeDescription}}) because their bank requires them to authenticate the payment.
+
+We've emailed them a secure payment link for the same amount. You'll see it under Dashboard → Payments → "Waiting for client" until it's paid.
+
+{{adminUrl}}`,
+  },
+  {
+    key: "admin_ops_alert",
+    channel: "email",
+    name: "Admin alert: system problem",
+    subject: "System alert: {{alertTitle}}",
+    body: "{{alertBody}}\n\nThis is an automatic alert from your booking system. If it keeps happening, contact your developer.",
+  },
+  {
     key: "admin_new_booking",
     channel: "email",
     name: "Admin alert: new booking",
