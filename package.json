@@ -25,7 +25,8 @@
     "check": "npm run typecheck && npm run lint && npm test && npm run check:tokens",
     "build:local": "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:3000} npm run build",
     "test:e2e": "npm run build:local && vitest run -c vitest.e2e.config.mts",
-    "test:e2e:only": "vitest run -c vitest.e2e.config.mts"
+    "test:e2e:only": "vitest run -c vitest.e2e.config.mts",
+    "admin:reset": "tsx scripts/admin-reset.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",

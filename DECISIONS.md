@@ -134,3 +134,9 @@ Non-obvious choices, newest last.
     `lastSuccessAt` (only moves when all steps succeed) and failing step names. `cronHealth()` reports stale after 15
     minutes without a success (or, in production/preview, if it has never succeeded). The dashboard layout shows a
     red, non-dismissible warning when stale; `/api/health` uses the same check (fix 11). Test: `tests/cron-health.test.ts`.
+34. **Fix 9: admin account recovery.** `npm run admin:reset -- --email … [--reset-2fa]` (logic in
+    `src/lib/auth/reset.ts`, no web route) sets a random ~100-bit temporary password printed once, optionally clears
+    TOTP and recovery codes so 2FA is re-enrolled at next sign-in, deletes all of that admin's sessions, and writes
+    `auth.admin_reset` to the audit log with the operator's OS username. A web "forgot password" was rejected on
+    purpose: it would make the inbox the weakest link to client health records. Procedure in `RUNBOOK.md`.
+    Test: `tests/admin-reset.test.ts`, plus a manual CLI run against a scratch database.
