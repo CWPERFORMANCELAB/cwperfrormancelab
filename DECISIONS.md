@@ -97,3 +97,9 @@ Non-obvious choices, newest last.
     `btree_gist` extension and the `bookings_no_overlap` exclusion constraint on every connect (and the
     instrumentation hook connects at boot in production), so a database without them fails loudly instead of
     silently allowing double bookings. Test: `tests/db-invariants.test.ts` (drops the constraint and expects failure).
+29. **Fix 4: version control.** Git initialised on `main`. `.gitignore` now keeps `.env.example` while ignoring all
+    other `.env*`, and adds `/.data/` (local databases), `/.claude/` and the review-prompt notes; `.next/`,
+    `node_modules/` and `*.tsbuildinfo` were already covered. `npm ci` succeeds with the lock file. A clean-clone
+    run of `npm ci && npm run check` exposed a real bug: the global `PageProps`/`LayoutProps` route types live in
+    the uncommitted `.next/`, so `typecheck` only passed on a machine that had built before. `typecheck` now runs
+    `next typegen` first. The clean clone then passed (110 tests). The test for this fix is that clean-clone run.
