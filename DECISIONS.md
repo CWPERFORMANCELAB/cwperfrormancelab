@@ -173,3 +173,10 @@ Non-obvious choices, newest last.
     (`turbopackIgnore`), and the build is now warning-free. Tests: `tests/monitoring.test.ts` (12: scrubbing,
     options, CSP, health states and caching, 3-failure alert, reconciliation alert) and
     `tests/e2e/health.e2e.test.ts`. Docs: README env table, `.env.example`, GO-LIVE, RUNBOOK.
+37. **Self-hosted fonts.** Inter and Inter Tight load with `next/font/local` from `src/app/fonts/` (committed). Each is
+    one variable-weight (100–900) Latin woff2, the same subset and upright-only style `next/font/google` served, taken
+    from `@fontsource-variable/inter` and `inter-tight` 5.3.0 (unpacked once, not added as dependencies), with their
+    SIL OFL licences alongside. Builds no longer fetch from Google, and visitors' browsers never contact Google
+    Fonts. Checked on a production build: both faces load from `/_next/static/media` and no request goes to Google.
+    Test: `tests/fonts.test.ts`. It fails if anything imports `next/font/google` or links to Google Fonts (verified
+    against the old layout), and checks the font files and licences are present.

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Inter_Tight } from "next/font/google";
+import localFont from "next/font/local";
 import { business } from "@config/business";
 import { RevealObserver } from "@/components/reveal";
 import { token } from "@/lib/theme-tokens";
@@ -7,8 +7,9 @@ import { siteUrl } from "@/lib/url";
 import "./globals.css";
 
 // Brand fonts are set via --brand-font-* in config/theme.css; these load the faces they reference.
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
-const tight = Inter_Tight({ variable: "--font-tight", subsets: ["latin"], display: "swap" });
+// Self-hosted (Latin subset, variable weight axis; SIL OFL, licences alongside) so builds never fetch from Google.
+const inter = localFont({ src: "./fonts/inter-latin-wght-normal.woff2", variable: "--font-inter", weight: "100 900", style: "normal", display: "swap" });
+const tight = localFont({ src: "./fonts/inter-tight-latin-wght-normal.woff2", variable: "--font-tight", weight: "100 900", style: "normal", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
