@@ -1,0 +1,162 @@
+{
+  "_comment": "Page copy for the public site. Pages render from this file and never hardcode copy. Brand facts (names, address, phone) come from config/business.ts.",
+  "nav": [
+    { "href": "/services", "label": "Services" },
+    { "href": "/pricing", "label": "Pricing" },
+    { "href": "/about", "label": "About" },
+    { "href": "/home-visits", "label": "Home visits" },
+    { "href": "/gift-vouchers", "label": "Gift vouchers" },
+    { "href": "/faq", "label": "FAQ" },
+    { "href": "/contact", "label": "Contact" }
+  ],
+  "cta": {
+    "book": "Book now",
+    "bookSession": "Book a session",
+    "picker": "Not sure which session?",
+    "fromPrefix": "Sessions from"
+  },
+  "trust": [
+    { "icon": "shield", "text": "BSc (Hons) Sport Rehabilitation" },
+    { "icon": "car", "text": "Free parking outside" },
+    { "icon": "card", "text": "Pay securely: card, Apple Pay, Google Pay" },
+    { "icon": "calendar", "text": "Free cancellation 24h+ before" }
+  ],
+  "home": {
+    "eyebrow": "Sport Rehabilitator · Made Running Hub, Manchester",
+    "headline": ["Recover properly.", "Perform at your best."],
+    "lede": "Injury treatment, sports massage, recovery and performance rehab at Manchester's home of running. We fix the problem, explain why it happened and build you back stronger.",
+    "primaryCta": "Book an assessment",
+    "secondaryCta": "Services & prices",
+    "servicesTitle": "How I can help",
+    "servicesLede": "Clear prices. Book and pay in under a minute: no phone calls, no back-and-forth.",
+    "approach": {
+      "eyebrow": "The approach",
+      "title": "From injury to performance.",
+      "lede": "Whether you're coming back from injury or chasing a PB, every plan follows the same proven path.",
+      "steps": [
+        { "title": "Assess", "body": "A detailed conversation and hands-on assessment to find the real cause, not just where it hurts." },
+        { "title": "Treat", "body": "Targeted treatment, from soft tissue work to mobility, to ease pain and restore movement." },
+        { "title": "Rebuild", "body": "A progressive rehab programme to rebuild strength and control, with every step explained." },
+        { "title": "Perform", "body": "Return-to-sport testing and conditioning so you come back stronger and stay that way." }
+      ]
+    },
+    "running": {
+      "eyebrow": "Part of the running community",
+      "title": "Based at Made Running Hub.",
+      "body": "From first 5Ks to marathon PBs, I work with runners every day. I understand mileage, niggles, taper weeks and race-day nerves, and I'll help you stay on the start line."
+    },
+    "aboutTeaser": {
+      "eyebrow": "Meet your Sport Rehabilitator",
+      "title": "I know what it takes to come back, because I've done it.",
+      "body": "A torn meniscus playing rugby taught me how much the right rehab, education and support matter. Now I help others do the same.",
+      "cta": "Read my story"
+    },
+    "finalCta": { "title": "Ready to move better?", "body": "Pick your session, choose a time and you're booked. It takes less than a minute." }
+  },
+  "services": {
+    "title": "Services",
+    "lede": "Assessment, treatment and recovery for runners, athletes and anyone who wants to move and feel better.",
+    "categories": {
+      "rehab": { "label": "Rehab & assessment", "blurb": "Find the cause, treat it properly and get a plan to stay fixed." },
+      "recovery": { "label": "Recovery & soft tissue", "blurb": "Hands-on and assisted recovery to ease tension and bounce back faster." },
+      "performance": { "label": "Performance", "blurb": "Strength and conditioning that bridges rehab and peak performance." }
+    }
+  },
+  "pricing": {
+    "title": "Pricing",
+    "lede": "Simple, transparent prices. You pay securely when you book.",
+    "homeVisitNote": "Home visits are available for most services. A travel charge applies depending on distance.",
+    "vouchersNote": "Have a gift voucher? Enter the code at checkout."
+  },
+  "about": {
+    "eyebrow": "About",
+    "title": "Helping you move better, perform better and return with confidence."
+  },
+  "homeVisits": {
+    "title": "Home visits",
+    "lede": "Treatment in the comfort of your own home, ideal if travelling is difficult or you'd simply prefer it.",
+    "body": "Home visits are available for most services across Manchester. Because travel time varies, each home visit is priced with a personalised quote. Tell me where you are and when suits you, and I'll come back to you with a price and a secure link to confirm and pay.",
+    "steps": ["Send your postcode, the service and times that suit you.", "I'll reply with a personalised quote, usually within one working day.", "Confirm and pay through a secure link and you're booked."],
+    "formTitle": "Request a home visit",
+    "success": "Thanks! Your request is in. I'll reply with a quote shortly."
+  },
+  "vouchers": {
+    "title": "Gift vouchers",
+    "lede": "Give the gift of recovery. A sports or relaxing massage e-voucher for the runner, lifter or desk-worker in your life, emailed instantly with a unique code.",
+    "how": ["Choose a voucher and add a personal message.", "Pay securely. The e-voucher is emailed straight away.", "They redeem the code when booking online."],
+    "terms": "Vouchers are valid for {{expiryMonths}} months from purchase and can be redeemed against any service. Any unused balance stays on the code until it expires."
+  },
+  "testimonials": {
+    "title": "What clients say",
+    "lede": "Real feedback from people I've helped get back to doing what they love."
+  },
+  "faq": { "title": "Frequently asked questions", "lede": "Everything you need to know before your first session." },
+  "contact": {
+    "title": "Contact & location",
+    "lede": "Get in touch or come and see me at Made Running Hub.",
+    "formTitle": "Send a message",
+    "success": "Thanks, your message has been sent. I'll get back to you soon."
+  },
+  "picker": {
+    "title": "Not sure which session to book?",
+    "lede": "Answer a couple of quick questions and I'll point you in the right direction.",
+    "questions": [
+      {
+        "id": "goal",
+        "label": "What brings you in?",
+        "options": [
+          { "id": "injury", "label": "I'm injured or in pain" },
+          { "id": "recovery", "label": "Recovery from training or a race" },
+          { "id": "checkup", "label": "A full check-up or MOT" },
+          { "id": "mobility", "label": "I feel stiff and want to move better" }
+        ]
+      },
+      {
+        "id": "detail",
+        "label": "Which sounds most like you?",
+        "dependsOn": "goal",
+        "options": {
+          "injury": [
+            { "id": "new", "label": "A new injury or recent pain" },
+            { "id": "ongoing", "label": "It's been going on a while or keeps coming back" }
+          ],
+          "recovery": [
+            { "id": "hands-on", "label": "Hands-on: I want my muscles worked" },
+            { "id": "passive", "label": "Relaxing: feet up, legs refreshed" },
+            { "id": "tension", "label": "Targeted relief for a tight, achy spot" }
+          ],
+          "checkup": [
+            { "id": "race", "label": "I'm starting a training block or race build-up" },
+            { "id": "general", "label": "I just want to know where I stand" }
+          ],
+          "mobility": [
+            { "id": "range", "label": "Tight hips, hamstrings or back" },
+            { "id": "knots", "label": "Knots and muscle tension" }
+          ]
+        }
+      }
+    ],
+    "rules": [
+      { "when": { "goal": "injury" }, "recommend": "injury-assessment", "why": "An assessment pinpoints what's going on and you'll start treatment and a rehab plan the same day." },
+      { "when": { "goal": "recovery", "detail": "hands-on" }, "recommend": "sports-massage", "why": "Deep tissue sports massage is ideal for sore, overworked muscles after training or a race." },
+      { "when": { "goal": "recovery", "detail": "passive" }, "recommend": "compression-boots", "why": "Compression boots flush tired legs while you relax. Choose the extended session after a race." },
+      { "when": { "goal": "recovery", "detail": "tension" }, "recommend": "dry-cupping", "why": "Dry cupping targets stubborn tension and aches, and pairs well with massage." },
+      { "when": { "goal": "checkup" }, "recommend": "full-body-mot", "why": "The Full Body MOT screens your whole body and gives you a prioritised plan." },
+      { "when": { "goal": "mobility", "detail": "range" }, "recommend": "assisted-stretching", "why": "Assisted stretching unlocks range you can't reach on your own." },
+      { "when": { "goal": "mobility", "detail": "knots" }, "recommend": "sports-massage", "why": "Sports massage releases knots and muscle tension so you move freely." }
+    ],
+    "fallback": "injury-assessment"
+  },
+  "book": {
+    "title": "Book a session",
+    "steps": ["Session", "Time", "Your details", "Payment"],
+    "holdNotice": "We're holding this time for you",
+    "redFlagNotice": "Thanks for letting me know. Some of your answers mean it's worth getting checked by your GP or calling NHS 111 before or alongside treatment. If you have sudden numbness around the groin, loss of bladder or bowel control, or chest pain, call 999. Your booking can still go ahead and I'll review your answers beforehand.",
+    "confirmedTitle": "You're booked in",
+    "confirmedBody": "A confirmation with a calendar invite is on its way to your inbox.",
+    "beforeYouCome": ["Wear comfortable clothing that lets you move easily, and bring shorts if you can.", "Free parking is right outside Made Running Hub.", "Arrive a couple of minutes early so we can make the most of your time."]
+  },
+  "footer": {
+    "blurb": "Sport rehabilitation, recovery and performance in Manchester."
+  }
+}

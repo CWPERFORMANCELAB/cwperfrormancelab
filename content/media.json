@@ -1,0 +1,124 @@
+{
+  "_comment": "Every image/video slot on the site. Drop the file into public/media/ with the exact filename and set placeholder:false. Slots still marked placeholder:true show their 'fallback' (one of Christopher's existing real photos) so visitors never see an empty box; they're listed in CLIENT_TODO.md until the ideal shot arrives. Videos: H.264 MP4, ≤8 s, ≤1.5 MB, no audio, 720p portrait; add a .jpg poster with the same name.",
+  "slots": {
+    "hero": {
+      "file": "/media/hero.jpg",
+      "alt": "Christopher coaching an athlete through a box step-up at Made Running Hub",
+      "placeholder": false,
+      "kind": "image"
+    },
+    "heroInset": {
+      "file": "/media/agility.jpg",
+      "alt": "Footwork and agility drill on the gym floor",
+      "placeholder": false,
+      "kind": "image"
+    },
+    "heroLoop": {
+      "file": "/media/hero-loop.mp4",
+      "poster": "/media/hero.jpg",
+      "alt": "Short training clip",
+      "placeholder": true,
+      "kind": "video",
+      "needed": "6–8 s muted loop of a rehab or training drill (portrait, MP4)",
+      "fallback": "/media/agility.jpg"
+    },
+    "headshot": {
+      "file": "/media/headshot.jpg",
+      "alt": "Christopher Williams, Sport Rehabilitator, at Made Running Hub",
+      "placeholder": false,
+      "kind": "image",
+      "quality": 92
+    },
+    "about": {
+      "file": "/media/about.jpg",
+      "alt": "Christopher and a client performing split squats together",
+      "placeholder": false,
+      "kind": "image"
+    },
+    "treatment": {
+      "file": "/media/treatment.jpg",
+      "alt": "Hands-on treatment in the clinic",
+      "placeholder": true,
+      "kind": "image",
+      "needed": "Photo of Christopher treating a client (with the client's written consent), landscape 3:2",
+      "fallback": "/media/cable-lunge.jpg"
+    },
+    "clinic": {
+      "file": "/media/clinic.jpg",
+      "alt": "The treatment space at Made Running Hub",
+      "placeholder": true,
+      "kind": "image",
+      "needed": "Wide photo of the clinic / treatment room, landscape 3:2",
+      "fallback": "/media/hero.jpg"
+    },
+    "community": {
+      "file": "/media/community.jpg",
+      "alt": "Runners at Made Running Hub",
+      "placeholder": true,
+      "kind": "image",
+      "needed": "Community / run club photo at Made Running Hub, landscape 3:2",
+      "fallback": "/media/box-jump.jpg"
+    },
+    "boots": {
+      "file": "/media/compression-boots.jpg",
+      "alt": "Compression boots recovery session",
+      "placeholder": true,
+      "kind": "image",
+      "needed": "Photo of a client using the compression boots, portrait 4:5",
+      "fallback": "/media/mobility.jpg"
+    },
+    "cupping": {
+      "file": "/media/dry-cupping.jpg",
+      "alt": "Dry cupping treatment",
+      "placeholder": true,
+      "kind": "image",
+      "needed": "Photo of dry cupping treatment, portrait 4:5",
+      "fallback": "/media/headshot.jpg"
+    },
+    "gallery1": {
+      "file": "/media/box-jump.jpg",
+      "alt": "Athlete performing a single-leg box jump",
+      "placeholder": false,
+      "kind": "image"
+    },
+    "gallery2": {
+      "file": "/media/mobility.jpg",
+      "alt": "Hip mobility work on the gym floor",
+      "placeholder": false,
+      "kind": "image"
+    },
+    "gallery3": {
+      "file": "/media/cable-lunge.jpg",
+      "alt": "Kneeling cable rehab exercise",
+      "placeholder": false,
+      "kind": "image"
+    },
+    "rehabClip1": {
+      "file": "/media/rehab-1.mp4",
+      "poster": "/media/mobility.jpg",
+      "alt": "Rehab exercise demonstration",
+      "placeholder": true,
+      "kind": "video",
+      "needed": "Rehab exercise clip (portrait MP4, ≤8 s, muted)",
+      "fallback": "/media/mobility.jpg"
+    },
+    "rehabClip2": {
+      "file": "/media/rehab-2.mp4",
+      "poster": "/media/cable-lunge.jpg",
+      "alt": "Strength exercise demonstration",
+      "placeholder": true,
+      "kind": "video",
+      "needed": "Strength/conditioning clip (portrait MP4, ≤8 s, muted)",
+      "fallback": "/media/cable-lunge.jpg"
+    }
+  },
+  "services": {
+    "injury-assessment": "about",
+    "full-body-mot": "hero",
+    "sports-massage": "headshot",
+    "assisted-stretching": "gallery2",
+    "dry-cupping": "cupping",
+    "compression-boots": "boots",
+    "compression-boots-extended": "boots"
+  }
+}

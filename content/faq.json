@@ -1,0 +1,79 @@
+{
+  "_comment": "FAQ shown on /faq, the home page and service pages. Answers from Christopher are draft:false. Items marked draft:true were written for him and need his approval (listed in CLIENT_TODO.md). 'dynamic' answers are rendered from live settings.",
+  "items": [
+    {
+      "id": "what-to-wear",
+      "q": "What should I wear?",
+      "a": "Comfortable clothing that lets you move easily. Please bring shorts if you can, as they make it easier to access the area being assessed or treated.",
+      "draft": false,
+      "featured": true
+    },
+    {
+      "id": "home-visits",
+      "q": "Do you offer home visits?",
+      "a": "Yes. Home visits are available, with an extra charge depending on distance and location. Get in touch for a personalised quote.",
+      "draft": false,
+      "featured": true,
+      "link": { "href": "/home-visits", "label": "Request a home visit" }
+    },
+    {
+      "id": "parking",
+      "q": "Is there parking?",
+      "a": "Yes, there's free parking right outside the clinic at Made Running Hub.",
+      "draft": false,
+      "featured": true
+    },
+    {
+      "id": "cancel",
+      "q": "What if I need to cancel?",
+      "a": "",
+      "dynamic": "cancellationPolicy",
+      "draft": false,
+      "featured": true,
+      "link": { "href": "/terms", "label": "Full cancellation policy" }
+    },
+    {
+      "id": "hurt",
+      "q": "Will treatment hurt?",
+      "a": "I can't promise treatment will be completely pain-free. Depending on your injury and the treatment, you may feel some discomfort during or after a session. Your comfort and safety always come first: I'll explain what I'm doing as I go, keep the intensity at a level that suits your condition, and adjust straight away if anything feels too painful. Just tell me.",
+      "draft": false,
+      "featured": true
+    },
+    {
+      "id": "referral",
+      "q": "Do I need a GP referral?",
+      "a": "No. You can book directly without a referral. If your assessment suggests you need input from a GP or another specialist, I'll tell you and help you understand the next step.",
+      "draft": true
+    },
+    {
+      "id": "first-session",
+      "q": "What happens in my first session?",
+      "a": "We'll start by talking through your injury or goals, your activity and your history. Then I'll assess how you move: range of motion, strength and the specific area that's bothering you. You'll leave with a clear explanation of what's going on, hands-on treatment where appropriate, and a rehab plan you can start straight away.",
+      "draft": true
+    },
+    {
+      "id": "how-many",
+      "q": "How many sessions will I need?",
+      "a": "It depends on the injury, how long you've had it and your goals. Some people need one or two sessions and a good home programme; others benefit from regular check-ins over a few weeks. After your assessment I'll give you an honest recommendation, never a pre-sold package.",
+      "draft": true
+    },
+    {
+      "id": "sport-rehabilitator",
+      "q": "What's a Sport Rehabilitator?",
+      "a": "A Sport Rehabilitator is a graduate-trained clinician who specialises in musculoskeletal injuries, rehabilitation and getting people back to sport and activity. The focus is on assessment, hands-on treatment and exercise-based rehab, from the first day of an injury right through to full performance.",
+      "draft": true
+    },
+    {
+      "id": "not-sporty",
+      "q": "I'm not an athlete. Can you still help?",
+      "a": "Absolutely. Plenty of my clients just want to walk, garden, lift their kids or sit at a desk without pain. The same principles apply: understand the problem, treat it and build you back stronger.",
+      "draft": true
+    },
+    {
+      "id": "pay",
+      "q": "How do I pay?",
+      "a": "You pay securely online when you book, by card, Apple Pay or Google Pay, so there's nothing to sort out on the day. Gift vouchers can be redeemed at checkout.",
+      "draft": true
+    }
+  ]
+}

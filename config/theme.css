@@ -1,0 +1,59 @@
+/*
+ * SINGLE SOURCE OF TRUTH for brand design tokens.
+ * The ONLY file in the project allowed to contain colour literals.
+ * Tailwind utilities (bg-primary, text-ink, rounded-card …) are generated from these in src/app/globals.css.
+ */
+:root {
+  /* Website accent: sleek silver-grey (client request). Contrast-checked against the surfaces below. */
+  --brand-primary: #c9cad0; /* buttons, highlights, rings on dark (12:1 with ink text) */
+  --brand-primary-hover: #e4e5e9;
+  --brand-on-primary: #0b0b0f; /* text/icons placed ON a primary fill */
+  --brand-primary-strong: #3f4047; /* accent on light surfaces (9.2:1 on bone) */
+  --brand-primary-light: #c9cad0; /* accent text on dark surfaces (12:1 on ink) */
+  --brand-primary-soft: #ececef;
+  --brand-primary-glow: rgba(201, 202, 208, 0.18);
+
+  /* Dashboard accent: pale orange (client request). Applied inside .admin-theme only. */
+  --brand-admin-accent: #f4a971; /* fills: buttons, bars, highlights (10:1 with ink text) */
+  --brand-admin-accent-hover: #ee9a5c;
+  --brand-admin-accent-strong: #a8561a; /* accent text/links on white (5.2:1) */
+
+  --brand-ink: #0b0b0f; /* near-black */
+  --brand-coal: #15151b;
+  --brand-graphite: #1f1f27;
+  --brand-mist: #a3a1ab;
+  --brand-bone: #f4f2ee; /* off-white */
+  --brand-paper: #fbfaf8;
+  --brand-white: #ffffff;
+
+  --brand-success: #1f9d67;
+  --brand-warning: #d98b1a;
+  --brand-danger: #d6453d;
+
+  /* PLACEHOLDER: brand fonts (Inter / Inter Tight until the client confirms) */
+  --brand-font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --brand-font-display: var(--font-tight), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --brand-radius-sm: 0.625rem;
+  --brand-radius-md: 1rem;
+  --brand-radius-lg: 1.5rem;
+  --brand-radius-xl: 2rem;
+  --brand-radius-pill: 9999px;
+}
+
+/* Light panels on the dark website: accent switches to graphite so it stays visible. */
+.surface-light {
+  --brand-primary: var(--brand-primary-strong);
+  --brand-primary-hover: var(--brand-ink);
+  --brand-on-primary: var(--brand-white);
+  --brand-primary-light: var(--brand-primary-strong);
+}
+
+/* Admin dashboard keeps its own accent. */
+.admin-theme {
+  --brand-primary: var(--brand-admin-accent);
+  --brand-primary-hover: var(--brand-admin-accent-hover);
+  --brand-on-primary: var(--brand-ink);
+  --brand-primary-strong: var(--brand-admin-accent-strong);
+  --brand-primary-light: var(--brand-admin-accent);
+}
