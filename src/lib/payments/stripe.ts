@@ -63,13 +63,20 @@ export class StripeProvider implements PaymentProvider {
     return { sessionId: session.id, url: session.url, customerId: customer ?? null };
   }
 
-  async refund(providerPaymentId: string, amountPence: number, reason?: string) {
-    const r = await this.stripe.refunds.create({
-      payment_intent: providerPaymentId,
-      amount: amountPence,
-      metadata: reason ? { reason } : undefined,
-    });
+  async refund(providerPaymentId: string, amountPence: number, reason?: string, idempotencyKey?: string) {
+    const r = await this.stripe.refunds.create(
+      { payment_intent: providerPaymentId, amount: amountPence, metadata: reason ? { reason } : undefined },
+      idempotencyKey ? { idempotencyKey } : undefined,
+    );
     return { refundId: r.id };
+  }
+
+  async listRefunds(providerPaymentId: string) {
+    const out: { id: string; amount: number }[] = [];
+    for await (const r of this.stripe.refunds.list({ payment_intent: providerPaymentId, limit: 100 })) {
+      if (r.status !== "failed" && r.status !== "canceled") out.push({ id: r.id, amount: r.amount });
+    }
+    return out;
   }
 
   async chargeSavedCard(args: ChargeSavedCardArgs) {

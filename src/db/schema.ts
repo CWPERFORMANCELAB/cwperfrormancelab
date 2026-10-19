@@ -250,16 +250,21 @@ export const payments = pgTable(
   (t) => [uniqueIndex("payments_session_idx").on(t.providerSessionId), index("payments_booking_idx").on(t.bookingId)],
 );
 
-export const refunds = pgTable("refunds", {
-  id: uuidPk(),
-  paymentId: uuid("payment_id").notNull().references(() => payments.id),
-  amountPence: integer("amount_pence").notNull(),
-  reason: text("reason"),
-  providerRefundId: text("provider_refund_id"),
-  status: text("status").notNull().default("succeeded"),
-  automatic: boolean("automatic").notNull().default(false),
-  createdAt: createdAt(),
-});
+export const refunds = pgTable(
+  "refunds",
+  {
+    id: uuidPk(),
+    paymentId: uuid("payment_id").notNull().references(() => payments.id),
+    amountPence: integer("amount_pence").notNull(),
+    reason: text("reason"),
+    /** Stripe refund id (re_…). Unique, so a webhook can never record the same refund twice. */
+    providerRefundId: text("provider_refund_id"),
+    status: text("status").notNull().default("succeeded"),
+    automatic: boolean("automatic").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("refunds_provider_refund_idx").on(t.providerRefundId)],
+);
 
 export const vouchers = pgTable(
   "vouchers",

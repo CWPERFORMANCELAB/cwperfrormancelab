@@ -94,22 +94,25 @@ export async function startPayment(
  * was lost, refund automatically and alert the admin.
  */
 export async function handleCheckoutCompleted(db: Db, c: CompletedCheckout): Promise<{ ok: boolean; outcome: string }> {
-  const [p] = await db.select().from(payments).where(eq(payments.providerSessionId, c.sessionId));
-  if (!p) return { ok: false, outcome: "unknown_session" };
-  if (p.status === "succeeded" || p.status === "refunded" || p.status === "partially_refunded") return { ok: true, outcome: "already_processed" };
+  const [current] = await db.select().from(payments).where(eq(payments.providerSessionId, c.sessionId));
+  if (!current) return { ok: false, outcome: "unknown_session" };
 
-  const receiptNumber = `CW-${new Date().getFullYear()}-${p.id.slice(0, 8).toUpperCase()}`;
-  await db
+  // Single winner (PRE-DEPLOY-FIXES #6): the webhook, async_payment_succeeded and reconciliation can all arrive at
+  // once. Only the caller whose conditional update flips the row from 'pending' fulfils it; everyone else no-ops.
+  const receiptNumber = `CW-${new Date().getFullYear()}-${current.id.slice(0, 8).toUpperCase()}`;
+  const [p] = await db
     .update(payments)
     .set({
       status: "succeeded",
       providerPaymentId: c.paymentIntentId ?? c.setupIntentId,
       providerPaymentMethodId: c.paymentMethodId,
-      amountPence: p.kind === "setup" ? 0 : c.amountTotalPence || p.amountPence,
-      receiptNumber: p.kind === "setup" ? null : receiptNumber,
+      amountPence: current.kind === "setup" ? 0 : c.amountTotalPence || current.amountPence,
+      receiptNumber: current.kind === "setup" ? null : receiptNumber,
       updatedAt: new Date(),
     })
-    .where(eq(payments.id, p.id));
+    .where(and(eq(payments.id, current.id), eq(payments.status, "pending")))
+    .returning();
+  if (!p) return { ok: true, outcome: "already_processed" };
   if (c.customerId && p.clientId) {
     await db.update(clients).set({ stripeCustomerId: c.customerId }).where(eq(clients.id, p.clientId));
   }
@@ -163,9 +166,13 @@ export async function handleCheckoutCompleted(db: Db, c: CompletedCheckout): Pro
 
 /** Checkout abandoned/expired: release the slot hold, void a pending voucher. */
 export async function handleCheckoutExpired(db: Db, sessionId: string) {
-  const [p] = await db.select().from(payments).where(eq(payments.providerSessionId, sessionId));
-  if (!p || p.status !== "pending") return;
-  await db.update(payments).set({ status: "failed", updatedAt: new Date() }).where(eq(payments.id, p.id));
+  // Same single-winner rule: only flip a still-pending payment, so an expiry can never undo a completed payment.
+  const [p] = await db
+    .update(payments)
+    .set({ status: "failed", updatedAt: new Date() })
+    .where(and(eq(payments.providerSessionId, sessionId), eq(payments.status, "pending")))
+    .returning();
+  if (!p) return;
   if (p.bookingId) {
     await db
       .update(bookings)
@@ -177,31 +184,82 @@ export async function handleCheckoutExpired(db: Db, sessionId: string) {
 
 /* ------------------------------------------------------------------- refunds */
 
+/** Record any provider refunds for a payment that aren't in our ledger yet. Locked + idempotent. */
+export async function recordProviderRefunds(db: Db, providerPaymentId: string) {
+  const [p] = await db.select().from(payments).where(eq(payments.providerPaymentId, providerPaymentId));
+  if (!p) return 0;
+  const provider = await getPaymentProvider();
+  const remote = await provider.listRefunds(providerPaymentId);
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select id from payments where id = ${p.id} for update`);
+    let added = 0;
+    for (const r of remote) {
+      const ins = await tx
+        .insert(refunds)
+        .values({ paymentId: p.id, amountPence: r.amount, reason: "stripe_dashboard", providerRefundId: r.id, automatic: false })
+        .onConflictDoNothing()
+        .returning({ id: refunds.id });
+      if (ins.length) added += r.amount;
+    }
+    if (added) await syncRefundTotals(tx, p.id, p.bookingId, added);
+    return added;
+  });
+}
+
+/**
+ * Race-safe, idempotent refund (PRE-DEPLOY-FIXES #5).
+ *  1. Locks the payment row (SELECT … FOR UPDATE) so concurrent refunds — double clicks, an admin refund racing an
+ *     automatic one, a charge.refunded webhook — queue up and each sees the true remaining balance.
+ *  2. Calls the provider with an idempotency key derived from the locked state, so a retried request can't create a
+ *     second Stripe refund.
+ *  3. Records the provider refund id (unique index) and recomputes `refunded_pence` from the ledger.
+ */
 export async function refundPayment(
   db: DbOrTx,
   paymentId: string,
   amountPence: number,
   args: { reason: string; automatic: boolean; actor: string },
 ): Promise<number> {
-  const [p] = await db.select().from(payments).where(eq(payments.id, paymentId));
-  if (!p) throw new BookingError("not_found", "Payment not found");
-  const refundable = p.amountPence - p.refundedPence;
-  const amount = Math.min(refundable, amountPence);
-  if (amount <= 0) return 0;
-  let providerRefundId: string | null = null;
-  if (p.provider !== "manual" && p.providerPaymentId) {
-    const provider = await getPaymentProvider();
-    ({ refundId: providerRefundId } = await provider.refund(p.providerPaymentId, amount, args.reason));
+  const result = await db.transaction(async (tx) => {
+    await tx.execute(sql`select id from payments where id = ${paymentId} for update`);
+    const [p] = await tx.select().from(payments).where(eq(payments.id, paymentId));
+    if (!p) throw new BookingError("not_found", "Payment not found");
+    const amount = Math.min(p.amountPence - p.refundedPence, amountPence);
+    if (amount <= 0) return { amount: 0, p };
+    let providerRefundId: string | null = null;
+    if (p.provider !== "manual" && p.providerPaymentId) {
+      const provider = await getPaymentProvider();
+      const key = `refund:${p.id}:${p.refundedPence}:${amount}`;
+      ({ refundId: providerRefundId } = await provider.refund(p.providerPaymentId, amount, args.reason, key));
+    }
+    const inserted = await tx
+      .insert(refunds)
+      .values({ paymentId: p.id, amountPence: amount, reason: args.reason, providerRefundId, automatic: args.automatic })
+      .onConflictDoNothing()
+      .returning({ id: refunds.id });
+    if (!inserted.length) return { amount: 0, p }; // already recorded (e.g. by a webhook)
+    await syncRefundTotals(tx, p.id, p.bookingId, amount);
+    return { amount, p };
+  });
+  if (result.amount > 0) {
+    await audit(db, { actor: args.actor, action: "payment.refund", entityType: "payment", entityId: paymentId, meta: { amount: result.amount, reason: args.reason, automatic: args.automatic } });
   }
-  const refunded = p.refundedPence + amount;
-  await db
-    .update(payments)
-    .set({ refundedPence: refunded, status: refunded >= p.amountPence ? "refunded" : "partially_refunded", updatedAt: new Date() })
-    .where(eq(payments.id, p.id));
-  await db.insert(refunds).values({ paymentId: p.id, amountPence: amount, reason: args.reason, providerRefundId, automatic: args.automatic });
-  if (p.bookingId) await db.update(bookings).set({ paidPence: sql`greatest(0, ${bookings.paidPence} - ${amount})` }).where(eq(bookings.id, p.bookingId));
-  await audit(db, { actor: args.actor, action: "payment.refund", entityType: "payment", entityId: p.id, meta: { amount, reason: args.reason, automatic: args.automatic } });
-  return amount;
+  return result.amount;
+}
+
+/** Recompute a payment's refunded total from the ledger, and reduce the booking's paid amount by `newlyRefunded`. */
+async function syncRefundTotals(tx: DbOrTx, paymentId: string, bookingId: string | null, newlyRefunded: number) {
+  await tx.execute(sql`
+    update payments set
+      refunded_pence = least(amount_pence, (select coalesce(sum(amount_pence), 0) from refunds where payment_id = ${paymentId})),
+      status = case
+        when (select coalesce(sum(amount_pence), 0) from refunds where payment_id = ${paymentId}) >= amount_pence then 'refunded'::payment_status
+        else 'partially_refunded'::payment_status end,
+      updated_at = now()
+    where id = ${paymentId}`);
+  if (bookingId && newlyRefunded > 0) {
+    await tx.update(bookings).set({ paidPence: sql`greatest(0, ${bookings.paidPence} - ${newlyRefunded})` }).where(eq(bookings.id, bookingId));
+  }
 }
 
 /** Refund up to `amountPence` across a booking's successful payments, newest first. */
@@ -326,20 +384,10 @@ export async function processStripeEvent(db: Db, event: { id: string; type: stri
         await handleCheckoutExpired(db, obj.id as string);
         break;
       case "charge.refunded": {
-        // Refunds made directly in the Stripe dashboard: keep our ledger in sync.
+        // Keep the ledger in sync with refunds made outside the app (e.g. the Stripe dashboard). Refunds the app made
+        // itself are already recorded under the same Stripe refund id, so they're skipped (unique index).
         const pi = obj.payment_intent as string | undefined;
-        const refunded = obj.amount_refunded as number | undefined;
-        if (pi && typeof refunded === "number") {
-          const [p] = await db.select().from(payments).where(eq(payments.providerPaymentId, pi));
-          if (p && refunded > p.refundedPence) {
-            const delta = refunded - p.refundedPence;
-            await db
-              .update(payments)
-              .set({ refundedPence: refunded, status: refunded >= p.amountPence ? "refunded" : "partially_refunded", updatedAt: new Date() })
-              .where(eq(payments.id, p.id));
-            await db.insert(refunds).values({ paymentId: p.id, amountPence: delta, reason: "stripe_dashboard", automatic: false });
-          }
-        }
+        if (pi) await recordProviderRefunds(db, pi);
         break;
       }
       default:

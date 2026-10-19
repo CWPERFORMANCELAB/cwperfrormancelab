@@ -12,6 +12,8 @@ import { at, details, NOW } from "./fixtures";
 
 /** Fake Stripe: records refunds so we can assert on them. */
 const refunds: { id: string; amount: number }[] = [];
+/** Refunds that exist in "Stripe" (app-made plus any made in the dashboard). */
+const stripeSide: { id: string; amount: number }[] = [];
 const fake: PaymentProvider = {
   name: "mock",
   async createCheckout() {
@@ -20,7 +22,11 @@ const fake: PaymentProvider = {
   },
   async refund(id, amount) {
     refunds.push({ id, amount });
+    stripeSide.push({ id: `re_${refunds.length}`, amount });
     return { refundId: `re_${refunds.length}` };
+  },
+  async listRefunds() {
+    return stripeSide;
   },
   async chargeSavedCard() {
     return { paymentId: "pi_fee", status: "succeeded" };
@@ -34,6 +40,7 @@ let db: Db;
 beforeEach(async () => {
   db = await freshDb();
   refunds.length = 0;
+  stripeSide.length = 0;
   setPaymentProviderForTests(fake);
 });
 afterEach(() => setPaymentProviderForTests(null));
@@ -128,6 +135,7 @@ describe("Stripe webhooks", () => {
   it("charge.refunded from the Stripe dashboard syncs our ledger", async () => {
     const { sessionId } = await pendingBooking();
     await processStripeEvent(db, completedEvent("evt_pay", sessionId));
+    stripeSide.push({ id: "re_dashboard", amount: 2000 }); // refund made in the Stripe dashboard
     await processStripeEvent(db, { id: "evt_ref", type: "charge.refunded", data: { object: { payment_intent: "pi_123", amount_refunded: 2000 } } });
     const [p] = await db.select().from(payments).where(eq(payments.providerSessionId, sessionId));
     expect(p).toMatchObject({ refundedPence: 2000, status: "partially_refunded" });

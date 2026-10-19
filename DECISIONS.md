@@ -103,3 +103,18 @@ Non-obvious choices, newest last.
     run of `npm ci && npm run check` exposed a real bug: the global `PageProps`/`LayoutProps` route types live in
     the uncommitted `.next/`, so `typecheck` only passed on a machine that had built before. `typecheck` now runs
     `next typegen` first. The clean clone then passed (110 tests). The test for this fix is that clean-clone run.
+30. **Fix 5: race-safe, idempotent refunds.** `refundPayment()` runs in a transaction that locks the payment row
+    (`SELECT … FOR UPDATE`), computes the refundable balance from the locked row, calls Stripe with an idempotency
+    key derived from that locked state (`refund:<paymentId>:<refundedSoFar>:<amount>`), stores the Stripe refund id,
+    and recomputes `refunded_pence` from the refund ledger. `refunds.provider_refund_id` has a unique index.
+    `charge.refunded` no longer trusts `amount_refunded`: it lists the payment's refunds from Stripe and inserts only
+    ids we don't already have (same lock, `ON CONFLICT DO NOTHING`), so app-made refunds are never double-recorded.
+    Test: `tests/refunds.test.ts`. Five of its six cases failed before the change: two concurrent full refunds,
+    concurrent partials exceeding the payment, idempotency key, dashboard-refund replay, and the unique index.
+31. **Fix 6: single-winner checkout completion.** `handleCheckoutCompleted()` now starts with
+    `UPDATE payments SET status='succeeded' … WHERE id=? AND status='pending' RETURNING *`, and only the caller that
+    gets a row back fulfils (confirm booking, receipt, voucher/package activation, or slot-lost refund).
+    `handleCheckoutExpired()` uses the same conditional update, so an expiry can't undo a completed payment.
+    Test: `tests/checkout-race.test.ts`. Three simultaneous deliveries give one `booking_confirmed` and two
+    `already_processed`, with one confirmation email and one receipt; the slot-lost case refunds once. Both concurrent
+    cases failed before the change.

@@ -34,7 +34,10 @@ export type ChargeSavedCardArgs = {
 export interface PaymentProvider {
   name: "stripe" | "mock";
   createCheckout(args: CreateCheckoutArgs): Promise<CheckoutResult>;
-  refund(providerPaymentId: string, amountPence: number, reason?: string): Promise<{ refundId: string }>;
+  /** `idempotencyKey` makes a retried request return the original refund instead of creating a second one. */
+  refund(providerPaymentId: string, amountPence: number, reason?: string, idempotencyKey?: string): Promise<{ refundId: string }>;
+  /** All refunds the provider holds for a payment (used to reconcile charge.refunded webhooks). */
+  listRefunds(providerPaymentId: string): Promise<{ id: string; amount: number }[]>;
   chargeSavedCard(args: ChargeSavedCardArgs): Promise<{ paymentId: string; status: "succeeded" | "failed"; error?: string }>;
   /** Pull the current state of a checkout (used by reconciliation when a webhook was missed). */
   retrieveCheckout(sessionId: string): Promise<CompletedCheckout | { status: "open" | "expired" }>;

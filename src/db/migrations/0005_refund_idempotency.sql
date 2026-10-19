@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "refunds_provider_refund_idx" ON "refunds" USING btree ("provider_refund_id");

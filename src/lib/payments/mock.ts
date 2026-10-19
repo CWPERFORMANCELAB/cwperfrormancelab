@@ -20,6 +20,10 @@ export class MockProvider implements PaymentProvider {
     return { refundId: `mock_re_${randomToken(8)}` };
   }
 
+  async listRefunds() {
+    return [];
+  }
+
   async chargeSavedCard(args: ChargeSavedCardArgs) {
     console.info(`[payments:mock] off-session charge £${(args.amountPence / 100).toFixed(2)} to ${args.customerId}`);
     return { paymentId: `mock_pi_${randomToken(10)}`, status: "succeeded" as const };
