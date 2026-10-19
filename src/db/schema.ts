@@ -485,6 +485,13 @@ export const auditLog = pgTable(
   (t) => [index("audit_entity_idx").on(t.entityType, t.entityId), index("audit_created_idx").on(t.createdAt)],
 );
 
+/** Small key/value store for operational health (e.g. last successful cron run). */
+export const systemStatus = pgTable("system_status", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").$type<Record<string, unknown>>().notNull(),
+  updatedAt: updatedAt(),
+});
+
 export const webhookEvents = pgTable("webhook_events", {
   id: text("id").primaryKey(), // provider event id
   provider: text("provider").notNull(),

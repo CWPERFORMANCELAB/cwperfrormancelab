@@ -127,3 +127,10 @@ Non-obvious choices, newest last.
     and records the attempt with `authenticationRequired` metadata; Payments lists these under "Waiting for client"
     until paid. New templates reach existing databases through `ensureTemplates()` at boot and in `db:migrate`.
     Webhook event list updated in README and GO-LIVE. Test: `tests/disputes-sca.test.ts`.
+33. **Fix 8: scheduled jobs.** Checked Vercel's current limits (docs updated July 2026): Hobby allows cron only once
+    a day (±59 min) and rejects more frequent schedules at deploy; Pro/Enterprise allow once a minute. The 5-minute
+    `/api/cron` therefore **requires Vercel Pro**, or on Hobby an external scheduler calling the endpoint with
+    `CRON_SECRET` (documented in README). Every run writes `system_status["cron"]` with `lastRunAt`,
+    `lastSuccessAt` (only moves when all steps succeed) and failing step names. `cronHealth()` reports stale after 15
+    minutes without a success (or, in production/preview, if it has never succeeded). The dashboard layout shows a
+    red, non-dismissible warning when stale; `/api/health` uses the same check (fix 11). Test: `tests/cron-health.test.ts`.

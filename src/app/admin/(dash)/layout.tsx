@@ -6,6 +6,8 @@ import { getDb } from "@/db/client";
 import { enquiries } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { dbPlaceholderCount, scanFiles } from "@/lib/placeholders";
+import { cronHealth } from "@/lib/cron";
+import { formatLocal } from "@/lib/time";
 import { logoutAction } from "../login/actions";
 
 export const metadata = { title: { default: "Dashboard", template: "%s · Dashboard" }, robots: { index: false, follow: false } };
@@ -18,11 +20,22 @@ async function Shell({ children }: { children: React.ReactNode }) {
   const dbp = await dbPlaceholderCount(db);
   const fileItems = scanFiles({ settings: [...seedSettings] as never, services: seedServices }).filter((i) => i.area !== "Settings" && i.area !== "Services");
   const count = dbp.settings.length + dbp.services.length + fileItems.length;
+  const cron = await cronHealth(db);
   return (
     <>
       <AdminNav logout={logoutAction} newEnquiries={n} />
       <main className="px-4 pt-5 pb-24 sm:px-6 lg:ml-60 lg:px-10 lg:pt-8 lg:pb-12">
         <div className="mx-auto max-w-6xl">
+          {cron.stale && (
+            <div className="mb-5 rounded-xl border border-danger/35 bg-danger/5 px-4 py-3 text-sm" role="alert">
+              <strong>Scheduled jobs aren&apos;t running.</strong>{" "}
+              {cron.lastSuccessAt
+                ? `Last successful run was ${cron.ageMinutes} minutes ago (${formatLocal(cron.lastSuccessAt, "d MMM HH:mm")}).`
+                : "They haven't run successfully yet."}{" "}
+              Reminders, slot-hold release and payment checks are paused. Check Vercel → Cron Jobs (needs the Pro plan) or contact your developer.
+              {cron.lastErrors.length > 0 && <span className="mt-1 block text-xs text-ink/65">Failing steps: {cron.lastErrors.join(", ")}</span>}
+            </div>
+          )}
           <PlaceholderBanner count={count} />
           {children}
         </div>

@@ -102,6 +102,11 @@ Copy `.env.example` to `.env.local`. All optional locally; required in productio
      server-side only.
 2. **Vercel**: import the repo, set the env vars above, deploy. `vercel.json` pins the region to `lhr1` and runs
    `/api/cron` every 5 minutes (reminders, hold release, payment reconciliation, voucher expiry, calendar sync).
+   **This needs the Vercel Pro plan.** Hobby only allows once-a-day cron jobs and *fails the deployment* with a
+   5-minute schedule (checked against Vercel's cron limits, July 2026). If staying on Hobby, delete `crons` from
+   `vercel.json` and have an external scheduler (e.g. cron-job.org or Supabase `pg_cron` + `pg_net`) call
+   `GET /api/cron` every 5 minutes with `Authorization: Bearer $CRON_SECRET`. Each run is recorded, and the
+   dashboard shows a red warning (and `/api/health` reports unhealthy) if the last successful run is over 15 minutes old.
 3. Set `NEXT_PUBLIC_SITE_URL` and `config/business.ts → seo.siteUrl` to the live domain.
 4. Run `npm run apply:client-details` against production after any change to `config/seed-settings.ts`.
 

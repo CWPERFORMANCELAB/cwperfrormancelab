@@ -9,7 +9,8 @@ Tick everything before pointing the domain and Instagram at the new site.
 - [ ] `DATABASE_URL` is the Supabase **transaction pooler** (port 6543); `MIGRATION_DATABASE_URL` is the **direct** connection (port 5432); `AUTO_MIGRATE` not set
 - [ ] `npm run db:migrate` run against production; it prints "btree_gist extension and bookings_no_overlap constraint present"
 - [ ] `DATA_ENCRYPTION_KEY`, `SESSION_SECRET`, `CRON_SECRET` set to fresh random values and the encryption key stored in a password manager
-- [ ] Cron running: Vercel → Project → Cron Jobs shows `/api/cron` succeeding
+- [ ] Vercel **Pro** plan (Hobby rejects the 5-minute cron), or an external scheduler calling `/api/cron` every 5 minutes
+- [ ] Cron running: Vercel → Project → Cron Jobs shows `/api/cron` succeeding, and the dashboard shows no "Scheduled jobs aren't running" warning
 
 ## Real business details
 - [ ] New business phone and email in `config/business.ts`
