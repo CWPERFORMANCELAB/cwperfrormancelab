@@ -2,10 +2,12 @@
 
 Status of the 12 pre-deployment items. Fixes 1–11 are done, tested and committed (one commit per fix or pair of
 fixes). Fix 12 needs real accounts and keys, so it is **pending**; the exact procedure is below. Each fix has a
-numbered entry in `DECISIONS.md` (26–36) with the full reasoning.
+numbered entry in `DECISIONS.md` (26–36) with the full reasoning. Three follow-up changes (fonts, `AUTO_MIGRATE`,
+Node/npm pinning) are listed at the end, and their reasoning is in `DECISIONS.md` 37–39.
 
-**Current results:** `npm run check` passes (typecheck, lint, 147 unit/integration tests, token check), and
-`npm run test:e2e` passes (85 tests against the real production build). The production build has no warnings.
+**Current results:** `npm run check` passes (typecheck, lint, 152 unit/integration tests, token check), and
+`npm run test:e2e` passes (85 tests against the real production build). The production build has no warnings. A clean
+clone installs with `npm ci` on npm 10.9.9 and on npm 11.19.1, and passes `npm run check` under Node 24.22.0.
 
 | # | Fix | Status | Test that would have caught it |
 | --- | --- | --- | --- |
@@ -195,9 +197,20 @@ This can't be done without real staging accounts. Nothing below has been run yet
     phone in it.
 13. Add the screenshots under `docs/pre-deploy/` and update this section.
 
+## Follow-up changes
+
+| Change | Test |
+| --- | --- |
+| **Self-hosted fonts.** Inter and Inter Tight are loaded with `next/font/local` from committed variable woff2 files in `src/app/fonts/`, with their SIL OFL licences alongside. Builds never fetch from Google, and visitors never contact Google Fonts. | `tests/fonts.test.ts`: no `next/font/google` or Google Fonts URL anywhere; the font files and licences exist. Failed on the old layout. Checked on a production build: both fonts load from the site itself, with zero Google requests. |
+| **`AUTO_MIGRATE=true` refused in production and preview.** It is a configuration error in `assertProductionEnv()`, so the server won't start and the build won't run. `shouldAutoMigrate()` also throws as a second guard. The pool default stays at 2. | `tests/env.test.ts` (3 new cases; 2 failed before the change). The fix-3 test in `tests/db-invariants.test.ts` was updated to expect the throw. |
+| **Node and npm pinned; lock file fixed.** `npm ci` failed on npm 10 because the lock file put drizzle-kit's `esbuild@0.25.12` where Vite needs `^0.27 \|\| ^0.28`. Fixed with an explicit `esbuild@^0.28.2` dev dependency (already locked through tsx, so no new code). `packageManager: npm@11.19.1`, `engines: node 24.x, npm >=11.19.1 <12`, and `.nvmrc`. | Clean clone: `npm ci` succeeds on npm 10.9.9 and 11.19.1 (the old lock file reproduces the failure), `npm ls --all` is clean, and `npm run check` passes under Node 24.22.0. |
+
 ## Other things to know
 
 - `npm run test:e2e` builds the app (~1 min), so it isn't part of `npm run check`. Run both in CI.
 - New migrations: `0005` refund idempotency, `0006` disputes, `0007` system status, `0008` webhook attempts. Run
   `npm run db:migrate` before promoting a deploy.
 - Sentry is pinned exactly to `@sentry/nextjs@11.4.0`.
+- Use Node 24 (`nvm use`). Other versions only warn (`engine-strict` is off), but Vercel will build with Node 24.
+- npm 11.19 no longer runs dependency install scripts by default. The 5 it lists are optional, and check, build and
+  e2e all pass without them.
