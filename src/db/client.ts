@@ -31,6 +31,8 @@ export function poolMax(env: NodeJS.ProcessEnv = process.env): number {
 }
 
 export function shouldAutoMigrate(env: NodeJS.ProcessEnv = process.env): boolean {
+  // Belt and braces: assertProductionEnv() already refuses to boot or build with this set off-local.
+  if (env.AUTO_MIGRATE === "true" && isStrict(env)) throw new Error("AUTO_MIGRATE=true is not allowed in production/preview. Run `npm run db:migrate` instead.");
   if (env.AUTO_MIGRATE === "true") return true;
   if (env.AUTO_MIGRATE === "false") return false;
   return !isStrict(env); // local: convenient; production/preview: explicit `npm run db:migrate` only

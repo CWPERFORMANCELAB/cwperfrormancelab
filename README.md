@@ -95,7 +95,7 @@ Copy `.env.example` to `.env.local`. All optional locally; required in productio
    - `DATABASE_URL` = the **transaction pooler** string (port **6543**). The app keeps a pool of 1–3 connections per
      serverless instance (`DB_POOL_MAX`, default 2) so traffic spikes can't exhaust Supabase's connection limit.
    - `MIGRATION_DATABASE_URL` = the **direct** connection string (port **5432**), used only by `npm run db:migrate`.
-   - Migrations **never** run automatically in production or preview (`AUTO_MIGRATE` defaults to off there). Run
+   - Migrations **never** run automatically in production or preview (`AUTO_MIGRATE` defaults to off there, and setting it to `true` makes the build and server refuse to start). Run
      `npm run db:migrate` as an explicit deploy step **before** promoting a deployment. It verifies the
      `btree_gist` extension and the `bookings_no_overlap` exclusion constraint, and seeds an empty database. Every
      server instance re-checks both at startup and refuses to serve if either is missing.

@@ -6,7 +6,7 @@ Tick everything before pointing the domain and Instagram at the new site.
 - [ ] Domain bought; DNS pointed at Vercel (A/ALIAS + `www` CNAME); HTTPS certificate issued
 - [ ] `NEXT_PUBLIC_SITE_URL` and `config/business.ts → seo.siteUrl` set to the live domain
 - [ ] Vercel region `lhr1`; Supabase project in London; daily **backups** enabled (Supabase → Database → Backups; PITR if on Pro)
-- [ ] `DATABASE_URL` is the Supabase **transaction pooler** (port 6543); `MIGRATION_DATABASE_URL` is the **direct** connection (port 5432); `AUTO_MIGRATE` not set
+- [ ] `DATABASE_URL` is the Supabase **transaction pooler** (port 6543); `MIGRATION_DATABASE_URL` is the **direct** connection (port 5432); `AUTO_MIGRATE` not set (the server and build refuse to start if it is `true`)
 - [ ] `npm run db:migrate` run against production; it prints "btree_gist extension and bookings_no_overlap constraint present"
 - [ ] `DATA_ENCRYPTION_KEY`, `SESSION_SECRET`, `CRON_SECRET` set to fresh random values and the encryption key stored in a password manager
 - [ ] Vercel **Pro** plan (Hobby rejects the 5-minute cron), or an external scheduler calling `/api/cron` every 5 minutes

@@ -30,10 +30,10 @@ describe("serverless connection settings", () => {
     expect(poolMax({ DB_POOL_MAX: "0" } as never)).toBe(1);
   });
 
-  it("never auto-migrates in production or preview unless explicitly told to", () => {
+  it("never auto-migrates in production or preview, even when told to", () => {
     expect(shouldAutoMigrate({ VERCEL_ENV: "production" } as never)).toBe(false);
     expect(shouldAutoMigrate({ VERCEL_ENV: "preview" } as never)).toBe(false);
     expect(shouldAutoMigrate({ NODE_ENV: "development" } as never)).toBe(true);
-    expect(shouldAutoMigrate({ VERCEL_ENV: "production", AUTO_MIGRATE: "true" } as never)).toBe(true);
+    expect(() => shouldAutoMigrate({ VERCEL_ENV: "production", AUTO_MIGRATE: "true" } as never)).toThrow(/AUTO_MIGRATE/);
   });
 });

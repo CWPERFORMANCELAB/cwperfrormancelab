@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { shouldAutoMigrate } from "@/db/client";
 import { assertProductionEnv, EnvError, runtimeMode } from "@/lib/env";
 
 const full = {
@@ -84,6 +85,19 @@ describe("assertProductionEnv", () => {
 
   it("does nothing locally", () => {
     expect(missingOf({ NODE_ENV: "development" } as never)).toEqual([]);
+  });
+
+  it.each(["production", "preview"])("refuses to start in %s with AUTO_MIGRATE=true", (mode) => {
+    const env = { ...full, VERCEL_ENV: mode };
+    for (const v of ["true", "TRUE", "1", "yes"]) expect(missingOf({ ...env, AUTO_MIGRATE: v } as never).join()).toMatch(/AUTO_MIGRATE/);
+    expect(missingOf({ ...env, AUTO_MIGRATE: "false" } as never)).toEqual([]);
+    expect(() => shouldAutoMigrate({ ...env, AUTO_MIGRATE: "true" } as never)).toThrow(/AUTO_MIGRATE/);
+    expect(shouldAutoMigrate(env as never)).toBe(false);
+  });
+
+  it("AUTO_MIGRATE=true is still fine locally", () => {
+    expect(missingOf({ NODE_ENV: "development", AUTO_MIGRATE: "true" } as never)).toEqual([]);
+    expect(shouldAutoMigrate({ NODE_ENV: "development", AUTO_MIGRATE: "true" } as never)).toBe(true);
   });
 });
 

@@ -180,3 +180,11 @@ Non-obvious choices, newest last.
     Fonts. Checked on a production build: both faces load from `/_next/static/media` and no request goes to Google.
     Test: `tests/fonts.test.ts`. It fails if anything imports `next/font/google` or links to Google Fonts (verified
     against the old layout), and checks the font files and licences are present.
+38. **`AUTO_MIGRATE=true` is refused off-local.** `assertProductionEnv()` now treats `AUTO_MIGRATE` set to
+    `true`/`1`/`yes` as a configuration error in production and preview. The server refuses to start (instrumentation)
+    and the build refuses to run (prebuild/`check:placeholders --production`). `shouldAutoMigrate()` also throws in
+    strict mode, as a second guard for code paths that reach `getDb()` without instrumentation. Reason: migrations are an
+    explicit deploy step (fix 3). Auto-migrating from every serverless instance races, and runs DDL through the
+    transaction pooler. Locally it still works as before. Pool default stays at 2 (declined). Test:
+    `tests/env.test.ts`, with 3 new cases (production and preview reject it, local allows it); 2 failed before the change.
+    The fix-3 assertion in `tests/db-invariants.test.ts` that allowed an explicit opt-in off-local now expects a throw.

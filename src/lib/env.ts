@@ -64,6 +64,9 @@ export function assertProductionEnv(env: NodeJS.ProcessEnv = process.env, opts: 
     if (env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) missing.push("STRIPE_SECRET_KEY (test key in production)");
     if (isLocalUrl(env.NEXT_PUBLIC_SITE_URL)) missing.push("NEXT_PUBLIC_SITE_URL (localhost in production)");
   }
+  // Migrations are an explicit deploy step off-local (`npm run db:migrate`): every serverless instance migrating at
+  // boot would race, and would run DDL over the transaction pooler.
+  if (/^(true|1|yes)$/i.test(env.AUTO_MIGRATE?.trim() ?? "")) missing.push("AUTO_MIGRATE (must not be true in production/preview; run npm run db:migrate)");
   if (env.DATA_ENCRYPTION_KEY && Buffer.from(env.DATA_ENCRYPTION_KEY, "base64").length !== 32) missing.push("DATA_ENCRYPTION_KEY (must be 32 bytes, base64)");
   if (env.SESSION_SECRET && env.SESSION_SECRET.length < 32) missing.push("SESSION_SECRET (use 32+ characters)");
 
