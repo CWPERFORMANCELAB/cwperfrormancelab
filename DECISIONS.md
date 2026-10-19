@@ -153,3 +153,23 @@ Non-obvious choices, newest last.
     console. Real Stripe Checkout and Apple Pay can't be tested without Stripe keys, so they're part of fix 12.
     Tests: `tests/security-headers.test.ts` (policy contents) and `tests/e2e/security-headers.e2e.test.ts` (headers
     the production server actually sends, including admin pages and API).
+36. **Fix 11: monitoring.** Sentry (`@sentry/nextjs`, pinned exactly to 11.4.0, a release more than two weeks old) is
+    set up in `src/lib/monitoring.ts`. Server init happens in `instrumentation.ts`, browser init in
+    `src/instrumentation-client.ts` (loaded only when `NEXT_PUBLIC_SENTRY_DSN` is set at build time), and Next's
+    `onRequestError` is wired to `captureRequestError`. It's off without a DSN; production logs a boot warning
+    instead of refusing to start, and GO-LIVE has a checklist line for it. Privacy settings: `sendDefaultPii: false`,
+    no tracing and no session replay. `beforeSend` runs `scrubEvent()` (`src/lib/scrub.ts`), which drops request
+    bodies, cookies, query strings, IPs, stack-frame locals and all but harmless headers, reduces `user` to its id, and
+    replaces emails and phone numbers in every string; ids such as UUIDs and Stripe ids are kept. Browser input
+    breadcrumbs are dropped. The CSP's connect-src gets only the exact ingest origin from the DSN. Handled errors in
+    webhook processing and cron steps are sent with `reportError()`. **`/api/health`** reports `database` (select 1),
+    `stripe` (`balance.retrieve`, 5s timeout, cached 60s so the public endpoint can't use up the Stripe rate limit) and
+    `cron` (`cronHealth`). It returns 200 or 503 with `no-store` and holds no personal data or error text. A mock
+    provider counts as unhealthy in production/preview. **Alerts:** `webhook_events.attempts` (migration `0008`)
+    counts failed processing; the third failure of the same event emails `admin_ops_alert` once (dedupe key per
+    event). `reconcilePendingPayments` now counts payments Stripe completed that we never processed, fixes them and
+    emails `admin_ops_alert` once per payment (a race with the webhook, `already_processed`, isn't counted). Also
+    fixed a regression from fix 3: `PGLITE_DIR` made Turbopack trace the whole project into the server bundle
+    (`turbopackIgnore`), and the build is now warning-free. Tests: `tests/monitoring.test.ts` (12: scrubbing,
+    options, CSP, health states and caching, 3-failure alert, reconciliation alert) and
+    `tests/e2e/health.e2e.test.ts`. Docs: README env table, `.env.example`, GO-LIVE, RUNBOOK.

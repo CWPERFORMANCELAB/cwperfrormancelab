@@ -37,8 +37,20 @@ payment reconciliation and voucher expiry are paused until it recovers.
 ## Health check / uptime monitor
 
 `GET /api/health` returns `200 {"ok":true,…}` when the database, Stripe and the scheduler are all healthy, and `503`
-with the failing check otherwise. Point an uptime monitor (Better Uptime, UptimeRobot, etc.) at it every minute and
-alert on non-200. It returns no personal data.
+with the failing check otherwise (`database`, `stripe` or `cron`). Point an uptime monitor (Better Uptime,
+UptimeRobot, etc.) at it every minute and alert on non-200. It returns no personal data. The Stripe check is cached
+for a minute, so after fixing a Stripe key wait a minute before re-checking.
+
+## Error reports (Sentry)
+
+Uncaught server errors, browser errors, failed webhook processing and failed cron steps go to Sentry when
+`SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` are set. Reports never include request bodies, cookies, IP addresses, emails or
+phone numbers (`src/lib/scrub.ts`); look the client up in the dashboard by the payment or booking id in the report.
+
+## "Payment found by reconciliation" email
+
+A client paid in Stripe but the webhook never reached us; the cron job found it and confirmed the booking. One-off
+is harmless. If it repeats, webhooks aren't arriving: check the endpoint URL and `STRIPE_WEBHOOK_SECRET` (next section).
 
 ## Stripe webhook failing
 

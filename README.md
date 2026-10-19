@@ -87,6 +87,7 @@ Copy `.env.example` to `.env.local`. All optional locally; required in productio
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | SMS |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google Calendar sync |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Optional bot protection on public forms |
+| `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | Error monitoring (Sentry, EU region recommended). Off when unset; production logs a warning at boot. Events are scrubbed of request bodies, emails and phone numbers |
 
 ## Deployment (Vercel + Supabase)
 

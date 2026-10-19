@@ -80,7 +80,7 @@ async function createPglite(): Promise<Db> {
   const { drizzle } = await import("drizzle-orm/pglite");
   const { migrate } = await import("drizzle-orm/pglite/migrator");
   const memory = process.env.PGLITE_MEMORY === "1";
-  const dataDir = path.join(process.cwd(), process.env.PGLITE_DIR || ".data/pglite");
+  const dataDir = path.join(/* turbopackIgnore: true */ process.cwd(), process.env.PGLITE_DIR || ".data/pglite");
   if (!memory) fs.mkdirSync(dataDir, { recursive: true });
   const client = memory ? new PGlite({ extensions: { btree_gist } }) : new PGlite(dataDir, { extensions: { btree_gist } });
   const db = drizzle(client, { schema });

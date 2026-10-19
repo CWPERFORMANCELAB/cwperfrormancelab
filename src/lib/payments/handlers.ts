@@ -464,10 +464,27 @@ export async function processStripeEvent(db: Db, event: { id: string; type: stri
     await db.update(webhookEvents).set({ processedAt: new Date(), error: null }).where(eq(webhookEvents.id, event.id));
     return { duplicate: false };
   } catch (err) {
-    await db.update(webhookEvents).set({ error: String(err).slice(0, 500) }).where(eq(webhookEvents.id, event.id));
+    const [row] = await db
+      .update(webhookEvents)
+      .set({ error: String(err).slice(0, 500), attempts: sql`${webhookEvents.attempts} + 1` })
+      .where(eq(webhookEvents.id, event.id))
+      .returning({ attempts: webhookEvents.attempts });
+    // Stripe keeps retrying for days; tell the admin once, on the third failure, rather than on every retry.
+    if (row?.attempts === WEBHOOK_ALERT_AFTER) {
+      await alertAdmin(db, "admin_ops_alert", {
+        vars: {
+          alertTitle: `Stripe event failing (${event.type})`,
+          alertBody: `A payment notification from Stripe (${event.type}, event ${event.id}) has failed ${WEBHOOK_ALERT_AFTER} times. Stripe will keep retrying, but the booking or payment it relates to may be out of date until it succeeds.\n\nLast error: ${String(err).slice(0, 300)}`,
+        },
+        dedupeKey: `ops:webhook:${event.id}`,
+      });
+    }
     throw err;
   }
 }
+
+/** Failed processing attempts of one webhook event before the admin is emailed (PRE-DEPLOY-FIXES #11). */
+export const WEBHOOK_ALERT_AFTER = 3;
 
 /**
  * Safety net for missed webhooks: ask Stripe about checkouts still pending after 10 minutes.
@@ -481,12 +498,25 @@ export async function reconcilePendingPayments(db: Db, now = new Date()) {
     .from(payments)
     .where(and(eq(payments.status, "pending"), lt(payments.createdAt, new Date(now.getTime() - 10 * 60_000)), sql`${payments.providerSessionId} is not null`))
     .limit(25);
+  let mismatches = 0;
   for (const p of stale) {
     const s = await provider.retrieveCheckout(p.providerSessionId!);
-    if (s.status === "complete") await handleCheckoutCompleted(db, s);
-    else if (s.status === "expired") await handleCheckoutExpired(db, p.providerSessionId!);
+    if (s.status === "complete") {
+      // Stripe took the money but we never processed the webhook: fix it, and tell the admin, since it means
+      // webhooks aren't arriving (wrong endpoint/secret) or are failing.
+      const r = await handleCheckoutCompleted(db, s);
+      if (r.outcome === "already_processed") continue; // the webhook landed while we were checking
+      mismatches++;
+      await alertAdmin(db, "admin_ops_alert", {
+        vars: {
+          alertTitle: "payment found by reconciliation",
+          alertBody: `A ${formatPence(s.amountTotalPence)} payment (checkout ${s.sessionId}) was completed in Stripe but our system hadn't been told. It has now been processed automatically (result: ${r.outcome}).\n\nIf this happens more than once, check the Stripe webhook endpoint and STRIPE_WEBHOOK_SECRET (see RUNBOOK.md).`,
+        },
+        dedupeKey: `ops:reconcile:${p.id}`,
+      });
+    } else if (s.status === "expired") await handleCheckoutExpired(db, p.providerSessionId!);
   }
-  return { checked: stale.length };
+  return { checked: stale.length, mismatches };
 }
 
 export function paymentLinkUrl(token: string) {

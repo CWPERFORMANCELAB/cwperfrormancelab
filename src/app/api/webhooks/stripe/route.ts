@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/db/client";
 import { getPaymentProvider } from "@/lib/payments/provider";
 import { processStripeEvent } from "@/lib/payments/handlers";
+import { reportError } from "@/lib/monitoring";
 
 /**
  * Stripe webhook. Signature verified with STRIPE_WEBHOOK_SECRET against the RAW body; processing is idempotent
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true, duplicate: r.duplicate });
   } catch (err) {
     console.error("[stripe webhook] processing failed", (event as { type: string }).type, err);
+    reportError(err, { area: "stripe-webhook", eventType: (event as { type: string }).type });
     return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
 }

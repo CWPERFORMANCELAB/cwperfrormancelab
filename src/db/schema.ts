@@ -498,6 +498,7 @@ export const webhookEvents = pgTable("webhook_events", {
   type: text("type").notNull(),
   processedAt: ts("processed_at"),
   error: text("error"),
+  attempts: integer("attempts").notNull().default(0), // failed processing attempts; admin alerted at 3
   createdAt: createdAt(),
 });
 

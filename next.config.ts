@@ -24,7 +24,11 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    const opts = { dev: process.env.NODE_ENV === "development", plausible: Boolean(process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN) };
+    const opts = {
+      dev: process.env.NODE_ENV === "development",
+      plausible: Boolean(process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN),
+      sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    };
     return [
       // Order matters: for the same header key, the LAST matching rule wins, so the stricter admin rule comes last.
       { source: "/(.*)", headers: securityHeaders(opts) },

@@ -15,6 +15,7 @@ import { syncBusyFromGoogle } from "@/lib/calendar/google";
 import { enqueue } from "@/lib/notifications/queue";
 import { dispatchDue } from "@/lib/notifications/queue";
 import { reconcilePendingPayments } from "@/lib/payments/handlers";
+import { reportError } from "@/lib/monitoring";
 import { loadSettings } from "@/lib/settings";
 import { siteUrl } from "@/lib/url";
 import { signUnsubscribe } from "@/lib/unsubscribe";
@@ -27,6 +28,7 @@ export async function runJobs(db: Db, now = new Date()) {
       out[name] = await fn();
     } catch (err) {
       console.error(`[cron] ${name} failed`, err);
+      reportError(err, { area: "cron", step: name });
       out[name] = { error: String(err) };
     }
   };

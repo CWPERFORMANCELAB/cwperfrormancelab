@@ -11,6 +11,8 @@ Tick everything before pointing the domain and Instagram at the new site.
 - [ ] `DATA_ENCRYPTION_KEY`, `SESSION_SECRET`, `CRON_SECRET` set to fresh random values and the encryption key stored in a password manager
 - [ ] Vercel **Pro** plan (Hobby rejects the 5-minute cron), or an external scheduler calling `/api/cron` every 5 minutes
 - [ ] Cron running: Vercel → Project → Cron Jobs shows `/api/cron` succeeding, and the dashboard shows no "Scheduled jobs aren't running" warning
+- [ ] Sentry project created (EU data region), `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` set, and a test error seen arriving with no email/phone/body in it
+- [ ] Uptime monitor pointed at `https://<domain>/api/health` (alert on non-200); it returns 200 after deploy
 
 ## Real business details
 - [ ] New business phone and email in `config/business.ts`

@@ -104,6 +104,10 @@ export class StripeProvider implements PaymentProvider {
     }
   }
 
+  async ping(): Promise<void> {
+    await this.stripe.balance.retrieve({}, { timeout: 5000, maxNetworkRetries: 0 });
+  }
+
   async retrieveCheckout(sessionId: string): Promise<CompletedCheckout | { status: "open" | "expired" }> {
     const s = await this.stripe.checkout.sessions.retrieve(sessionId, { expand: ["setup_intent", "payment_intent"] });
     if (s.status !== "complete") return { status: s.status === "expired" ? "expired" : "open" };

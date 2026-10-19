@@ -42,6 +42,8 @@ export interface PaymentProvider {
   chargeSavedCard(args: ChargeSavedCardArgs): Promise<{ paymentId: string; status: "succeeded" | "failed" | "requires_action"; error?: string }>;
   /** Pull the current state of a checkout (used by reconciliation when a webhook was missed). */
   retrieveCheckout(sessionId: string): Promise<CompletedCheckout | { status: "open" | "expired" }>;
+  /** Cheap authenticated call proving the provider is reachable and the key works (used by /api/health). */
+  ping?(): Promise<void>;
 }
 
 export type CompletedCheckout = {
