@@ -41,7 +41,7 @@ export default function TimeOffPage() {
   return (
     <>
       <p className="mb-2 text-sm"><Link href="/admin/bookings" className="text-ink/65 hover:text-ink">← Bookings</Link></p>
-      <PageHeader title="Time off & holidays" subtitle="Blocked time can't be booked online. Existing bookings aren't affected. Move or cancel them separately." />
+      <PageHeader title="Time off & holidays" subtitle={<>Blocked time can&apos;t be booked online. Existing bookings aren&apos;t affected. Move or cancel them separately. Your bookable hours are set in <Link href="/admin/availability" className="underline">Availability</Link>; use this page for one-off blocks inside them.</>} />
       <Card title="Block out time" className="mb-4">
         <Suspense fallback={<div className="h-20 animate-pulse rounded-lg bg-ink/5" />}>
           <Form />

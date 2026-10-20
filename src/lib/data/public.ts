@@ -37,7 +37,6 @@ export async function getCatalog() {
     policy: settings.cancellationPolicy,
     vouchers: settings.vouchers,
     features: settings.features,
-    workingHours: settings.workingHours,
     bookingRules: { minNoticeHours: settings.bookingRules.minNoticeHours, holdMinutes: settings.bookingRules.holdMinutes },
     paymentModel: settings.paymentDefaults.model,
     retentionYears: settings.compliance.dataRetentionYears,

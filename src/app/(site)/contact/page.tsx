@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { business, fullAddress } from "@config/business";
 import { PageHero } from "@/components/site/blocks";
 import { ContactForm } from "@/components/site/forms";
 import { MapEmbed } from "@/components/site/map-embed";
 import { ArrowUpRight, Car, Mail, MapPin, Phone, WhatsApp } from "@/components/icons";
 import { copy } from "@/lib/content";
-import { getCatalog } from "@/lib/data/public";
 import { mapsUrl } from "@/lib/url";
 
 export const metadata: Metadata = {
@@ -14,12 +14,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 export default async function ContactPage() {
-  const { workingHours } = await getCatalog();
   const a = business.address;
-  const order = [1, 2, 3, 4, 5, 6, 0] as const;
   return (
     <>
       <PageHero eyebrow="Contact" title={copy.contact.title} lede={copy.contact.lede} />
@@ -60,14 +56,11 @@ export default async function ContactPage() {
               </ul>
               <div className="mt-6 border-t border-white/[0.08] pt-6">
                 <h3 className="eyebrow text-bone/65">Appointment hours</h3>
-                <dl className="mt-3 grid gap-1.5 text-sm">
-                  {order.map((d) => (
-                    <div key={d} className="flex justify-between gap-4">
-                      <dt className="text-bone/65">{days[d]}</dt>
-                      <dd>{workingHours[d].length ? workingHours[d].map((r) => `${r.open}–${r.close}`).join(", ") : "Closed"}</dd>
-                    </div>
-                  ))}
-                </dl>
+                {/* Hours vary week to week (set per date in the dashboard), so point to live availability instead. */}
+                <p className="mt-3 text-sm text-bone/80">By appointment. Times change week to week, so the booking page always shows what&apos;s free.</p>
+                <Link href="/book" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-bone hover:underline">
+                  See available times <ArrowUpRight className="size-4" />
+                </Link>
               </div>
             </div>
           </div>

@@ -31,6 +31,9 @@ async function Bookings({ searchParams }: { searchParams: Promise<SP> }) {
       actions={
         <>
           <Segmented items={views} active={view} />
+          <Link href="/admin/availability" className="btn-ghost-dark btn-sm">
+            Availability
+          </Link>
           <Link href="/admin/bookings/time-off" className="btn-ghost-dark btn-sm">
             Time off
           </Link>

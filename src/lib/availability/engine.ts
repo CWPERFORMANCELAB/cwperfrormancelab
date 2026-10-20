@@ -3,6 +3,10 @@
  *
  * Model (DECISIONS.md #3): a booking occupies [start, end + buffer). Two time-blocking bookings may not have
  * overlapping occupied ranges. Blocked time (holidays, Google Calendar events) is busy time.
+ *
+ * Hours are entered per date by the practitioner (Bookings → Availability; table availability_days). There are no
+ * default weekly hours: a date without entered hours is not bookable. Every caller (public slot list, hold re-check,
+ * reschedule, dashboard) goes through `dayHours()`, so the dashboard and the website can't disagree.
  */
 import type { Settings } from "@/lib/settings-schema";
 import { addDaysIso, addMinutes, localDayBounds, localToUtc, localWeekday, todayLocal } from "@/lib/time";
@@ -15,11 +19,26 @@ export type EngineService = {
   runsConcurrently: boolean;
 };
 
+export type HoursRange = { open: string; close: string };
+/** Hours entered for one date. `cap: null` = the daily appointment cap from settings. */
+export type DayAvailability = { ranges: HoursRange[]; cap: number | null };
+
+/**
+ * The hours and appointment cap for a date. No entered hours = not bookable. The cap is the entered one if set,
+ * otherwise that weekday's cap from settings, or the highest weekday cap if that weekday's is 0 (e.g. a Sunday).
+ */
+export function dayHours(dateIso: string, dailyCaps: Settings["dailyCaps"], entry?: DayAvailability | null): { ranges: HoursRange[]; cap: number } {
+  if (!entry || entry.ranges.length === 0) return { ranges: [], cap: 0 };
+  const weekdayCap = dailyCaps[localWeekday(dateIso) as keyof Settings["dailyCaps"]] ?? 0;
+  return { ranges: entry.ranges, cap: entry.cap ?? (weekdayCap > 0 ? weekdayCap : Math.max(0, ...Object.values(dailyCaps))) };
+}
+
 export type DayInput = {
   dateIso: string; // London calendar date
   service: EngineService;
-  workingHours: Settings["workingHours"];
   dailyCaps: Settings["dailyCaps"];
+  /** The hours entered for this date (none = not bookable). */
+  hours?: DayAvailability | null;
   rules: Settings["bookingRules"];
   /** Occupied ranges of existing time-blocking bookings + blocked times overlapping this day. */
   busy: Interval[];
@@ -48,10 +67,8 @@ function minutesToHhmm(min: number): string {
 }
 
 export function slotsForDay(input: DayInput): DayResult {
-  const { dateIso, service, workingHours, dailyCaps, rules, busy, bookingsOnDay, now } = input;
-  const weekday = localWeekday(dateIso) as keyof Settings["workingHours"];
-  const ranges = workingHours[weekday] ?? [];
-  const cap = dailyCaps[weekday] ?? 0;
+  const { dateIso, service, dailyCaps, rules, busy, bookingsOnDay, now } = input;
+  const { ranges, cap } = dayHours(dateIso, dailyCaps, input.hours);
 
   if (dateIso < todayLocal(now)) return { dateIso, slots: [], reason: "past" };
   if (rules.maxAdvanceDays !== null && dateIso > addDaysIso(todayLocal(now), rules.maxAdvanceDays)) {

@@ -1,10 +1,10 @@
-import { and, eq, gt, inArray, lt, or, sql } from "drizzle-orm";
+import { and, eq, gt, gte, inArray, lt, or, sql } from "drizzle-orm";
 import { business } from "@config/business";
 import type { DbOrTx } from "@/db/client";
-import { blockedTimes, bookings, type Service } from "@/db/schema";
+import { availabilityDays, blockedTimes, bookings, type Service } from "@/db/schema";
 import type { Settings } from "@/lib/settings-schema";
 import { addDaysIso, localDateOf, localDayBounds } from "@/lib/time";
-import { slotsForDay, type DayResult, type Interval } from "./engine";
+import { slotsForDay, type DayAvailability, type DayResult, type Interval } from "./engine";
 
 /** Statuses that hold the practitioner's time (mirrors the DB exclusion constraint). */
 export const ACTIVE_STATUSES = ["pending_payment", "confirmed", "attended"] as const;
@@ -59,11 +59,20 @@ export async function loadBusy(db: DbOrTx, practitionerId: string, range: Range,
   return { busy, countsByDay };
 }
 
+/** Hours entered per date (availability_days) for [fromIso, toIso), keyed by date. */
+export async function loadDayHours(db: DbOrTx, practitionerId: string, fromIso: string, toIso: string): Promise<Map<string, DayAvailability>> {
+  const rows = await db
+    .select()
+    .from(availabilityDays)
+    .where(and(eq(availabilityDays.practitionerId, practitionerId), gte(availabilityDays.date, fromIso), lt(availabilityDays.date, toIso)));
+  return new Map(rows.map((r) => [r.date, { ranges: r.ranges, cap: r.cap }]));
+}
+
 export async function availabilityForRange(
   db: DbOrTx,
   args: {
     service: Pick<Service, "durationMin" | "bufferMin" | "runsConcurrently">;
-    settings: Pick<Settings, "workingHours" | "dailyCaps" | "bookingRules">;
+    settings: Pick<Settings, "dailyCaps" | "bookingRules">;
     fromIso: string;
     days: number;
     now?: Date;
@@ -76,6 +85,7 @@ export async function availabilityForRange(
   const toIso = addDaysIso(args.fromIso, args.days);
   const range = { start: localDayBounds(args.fromIso).start, end: localDayBounds(toIso).start };
   const { busy, countsByDay } = await loadBusy(db, practitionerId, range, { excludeBookingId: args.excludeBookingId, now });
+  const entered = await loadDayHours(db, practitionerId, args.fromIso, toIso);
 
   const out: DayResult[] = [];
   for (let i = 0; i < args.days; i++) {
@@ -85,8 +95,8 @@ export async function availabilityForRange(
       slotsForDay({
         dateIso,
         service: args.service,
-        workingHours: args.settings.workingHours,
         dailyCaps: args.settings.dailyCaps,
+        hours: entered.get(dateIso),
         rules: args.settings.bookingRules,
         busy: busy.filter((b) => b.start < bounds.end && b.end > bounds.start),
         bookingsOnDay: countsByDay.get(dateIso) ?? 0,

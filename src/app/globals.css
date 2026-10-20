@@ -118,6 +118,9 @@ body {
 @utility btn-ghost-dark {
   @apply btn border border-ink/15 text-ink hover:border-ink/40 hover:bg-ink/5;
 }
+@utility chip {
+  @apply rounded-full border border-ink/15 bg-white px-3 py-1 text-xs font-medium text-ink transition hover:border-ink/40 hover:bg-ink/5;
+}
 @utility btn-sm {
   min-height: 2.25rem;
   padding: 0.45rem 0.95rem;

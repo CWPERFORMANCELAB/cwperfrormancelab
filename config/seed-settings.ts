@@ -24,20 +24,6 @@ function setting<K extends SettingKey>(s: SeedSetting<K>): SeedSetting<K> {
 
 export const seedSettings = [
   setting({
-    key: "workingHours",
-    placeholder: true, // PLACEHOLDER: confirm working hours
-    placeholderNote: "Mon–Fri 08:00–19:00, Sat 09:00–15:00, Sun closed are assumptions.",
-    value: {
-      0: [],
-      1: [{ open: "08:00", close: "19:00" }],
-      2: [{ open: "08:00", close: "19:00" }],
-      3: [{ open: "08:00", close: "19:00" }],
-      4: [{ open: "08:00", close: "19:00" }],
-      5: [{ open: "08:00", close: "19:00" }],
-      6: [{ open: "09:00", close: "15:00" }],
-    },
-  }),
-  setting({
     key: "dailyCaps",
     placeholder: false, // confirmed: 5 on weekdays, 7 on Saturdays
     value: { 0: 0, 1: 5, 2: 5, 3: 5, 4: 5, 5: 5, 6: 7 },

@@ -66,7 +66,8 @@ npm run clear:demo-data    # removes every demo row; real data is untouched
 | Brand colours, fonts, radii | `config/theme.css` (only file allowed to contain colours) |
 | Logos, favicons, OG image | `public/brand/` |
 | Copy: about, FAQ, services, policies, page text, testimonials, media slots | `content/` |
-| Services, hours, caps, rules, policy, payments, vouchers, flags, notification timing | `config/seed-settings.ts` → DB → editable in **/admin/settings** |
+| Services, daily limits, rules, policy, payments, vouchers, flags, notification timing | `config/seed-settings.ts` → DB → editable in **/admin/settings** |
+| Bookable hours | Entered per date by Christopher in **/admin/availability** (no default weekly hours: a date with no hours isn't bookable) |
 | Email/SMS templates | DB (seeded from `src/lib/notifications/defaults.ts`), editable in **/admin/settings/templates** |
 | Intake questions (red flags, contraindications) | `src/lib/booking/questions.ts` |
 

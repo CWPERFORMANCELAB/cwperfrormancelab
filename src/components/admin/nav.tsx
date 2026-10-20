@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { setSessionValue, useSessionValue } from "@/lib/use-browser";
-import { Calendar, Chart, Cog, Gift, Inbox, LogOut, Menu, Pound, Sparkle, Users, X } from "@/components/icons";
+import { Calendar, Chart, Clock, Cog, Gift, Inbox, LogOut, Menu, Pound, Sparkle, Users, X } from "@/components/icons";
 
 const items = [
   { href: "/admin", label: "Overview", Icon: Sparkle, exact: true },
   { href: "/admin/bookings", label: "Bookings", Icon: Calendar },
+  { href: "/admin/availability", label: "Availability", Icon: Clock },
   { href: "/admin/clients", label: "Clients", Icon: Users },
   { href: "/admin/enquiries", label: "Enquiries", Icon: Inbox },
   { href: "/admin/payments", label: "Payments", Icon: Pound },

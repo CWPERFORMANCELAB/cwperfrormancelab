@@ -2,7 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { Suspense } from "react";
-import { SettingForm, WorkingHoursForm } from "@/components/admin/forms";
+import { DailyCapsForm, SettingForm } from "@/components/admin/forms";
 import { Card, PageHeader } from "@/components/admin/ui";
 import { ArrowRight } from "@/components/icons";
 import { getDb } from "@/db/client";
@@ -28,9 +28,12 @@ async function Forms() {
   const keys: SettingKey[] = ["bookingRules", "cancellationPolicy", "paymentDefaults", "vouchers", "features", "notifications", "compliance"];
   return (
     <div className="space-y-4">
-      <Card title={settingMeta.workingHours.label}>
-        <p className="mb-3 text-xs text-ink/65">{settingMeta.workingHours.help} Max/day is the daily appointment cap.</p>
-        <WorkingHoursForm value={s.workingHours as never} caps={s.dailyCaps as never} />
+      <Card title={settingMeta.dailyCaps.label}>
+        <p className="mb-3 text-xs text-ink/65">
+          {settingMeta.dailyCaps.help} Your bookable hours are set day by day in{" "}
+          <Link href="/admin/availability" className="underline">Bookings → Availability</Link>.
+        </p>
+        <DailyCapsForm caps={s.dailyCaps as never} />
       </Card>
       {keys.map((k) => (
         <Card key={k} title={settingMeta[k].label}>

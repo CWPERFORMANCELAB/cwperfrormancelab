@@ -9,20 +9,7 @@ const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM");
 
 export const hoursRange = z.object({ open: hhmm, close: hhmm });
 
-/** Index 0 = Sunday … 6 = Saturday, to match Date#getDay(). Empty array = closed. */
-export const workingHoursSchema = z.object({
-  0: z.array(hoursRange),
-  1: z.array(hoursRange),
-  2: z.array(hoursRange),
-  3: z.array(hoursRange),
-  4: z.array(hoursRange),
-  5: z.array(hoursRange),
-  6: z.array(hoursRange),
-});
-
 export const settingsSchemas = {
-  workingHours: workingHoursSchema,
-
   /** Max appointments per local calendar day, index 0 = Sunday … 6 = Saturday. */
   dailyCaps: z.object({
     0: z.number().int().min(0),
@@ -104,8 +91,7 @@ export const settingKeys = Object.keys(settingsSchemas) as SettingKey[];
 
 /** Human labels + help for the admin settings UI. */
 export const settingMeta: Record<SettingKey, { label: string; help: string }> = {
-  workingHours: { label: "Working hours", help: "Bookable hours per weekday in local time. Leave a day empty to close it." },
-  dailyCaps: { label: "Daily appointment caps", help: "Maximum appointments per day. 0 = closed." },
+  dailyCaps: { label: "Daily appointment limits", help: "The most appointments you'll take on a day you're available, by weekday (0 = use your highest limit)." },
   bookingRules: { label: "Booking rules", help: "Notice, booking window, slot interval and checkout hold." },
   cancellationPolicy: { label: "Cancellation & rescheduling", help: "Shown at checkout and in emails; enforced automatically." },
   paymentDefaults: { label: "Payments", help: "Default payment model and VAT. Services can override." },

@@ -203,3 +203,22 @@ Non-obvious choices, newest last.
     and `npm run check` passes in the clean clone under Node 24.22.0. Note: npm 11.19 no longer runs dependency install
     scripts by default. The 5 it lists (esbuild ×3, fsevents, unrs-resolver) are optional optimisations; the
     platform binaries come from optional dependencies, and check, build and e2e all pass without them.
+40. **Availability is entered per date, with no default weekly hours.** Client request: Christopher enters his own
+    hours and picks the days they apply to. There is deliberately no "usual working hours" fallback, so a date with
+    no hours entered can't be booked. The `workingHours` setting is removed, along with its Settings editor, the
+    contact page's fixed hours table (now "by appointment" with a link to live availability) and the JSON-LD opening
+    hours. Data: `availability_days` (practitioner, London date, ranges, optional cap, `is_demo`; migrations 0009 and
+    0010, RLS on). `dayHours()` in the engine is the single source for every caller: the public slot list, the hold
+    re-check when a client picks a time, client rescheduling, and the dashboard's 7-day cap panel and utilisation.
+    Slots are fetched live by a server action and never cached, so a save shows on the booking page immediately. UI
+    (`/admin/availability`, own sidebar item):
+    1. Hours: start and finish, an optional break, and presets.
+    2. Days: a two-month calendar with tap-to-select, "Every Mon…Sun" toggles, shift-click ranges, and past weeks hidden.
+    3. Save: "Available 8am–1pm on 6 days" or "Make unavailable" (asks for confirmation and lists the days).
+    Saving warns about existing bookings now outside the hours; they're never auto-cancelled. Daily appointment limits
+    stay in Settings (0 = use the highest limit, so an opened Sunday works). Demo: `seed:demo-data` adds sample
+    hours flagged `is_demo`; `clear:demo-data` removes only those. The go-live checklist now includes entering
+    availability. Tests: `tests/availability-plan.test.ts` (12, covering the engine, the real booking path, multi-day
+    set and clear, time off on top, clash warnings, the calendar data, validation, and demo clearing that keeps real
+    hours). The shared test database enters a fixed pattern for its date window (`tests/helpers.ts`), and the
+    forged-cookie e2e test covers the new route.

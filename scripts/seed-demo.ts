@@ -8,7 +8,7 @@
 import "./env";
 import { business } from "../config/business";
 import { getDb } from "../src/db/client";
-import { bookings, clients, enquiries, intakeForms, payments, voucherRedemptions, vouchers } from "../src/db/schema";
+import { availabilityDays, bookings, clients, enquiries, intakeForms, payments, voucherRedemptions, vouchers } from "../src/db/schema";
 import { encryptJson } from "../src/lib/crypto";
 import { listServices } from "../src/lib/settings";
 import { addDaysIso, addMinutes, localToUtc, localWeekday, todayLocal } from "../src/lib/time";
@@ -30,6 +30,18 @@ const GOALS = ["Run a sub-4 marathon", "Get back to football pain-free", "Train 
 async function main() {
   const db = await getDb();
   await clearDemoData(db, { quiet: true });
+  // ----------------------------------------------------------- availability
+  // Sample hours so the demo booking page has times (Mon–Fri 8am–7pm, Sat 9am–3pm). Flagged is_demo, so
+  // clear:demo-data removes them; never overwrites hours entered for real.
+  const demoToday = todayLocal();
+  for (let i = -150; i <= 56; i++) {
+    const date = addDaysIso(demoToday, i);
+    const wd = localWeekday(date);
+    if (wd === 0) continue;
+    const ranges = wd === 6 ? [{ open: "09:00", close: "15:00" }] : [{ open: "08:00", close: "19:00" }];
+    await db.insert(availabilityDays).values({ practitionerId: business.practitioner.id, date, ranges, isDemo: true }).onConflictDoNothing();
+  }
+
   const svc = await listServices(db);
   const byId = Object.fromEntries(svc.map((s) => [s.id, s]));
   // Weighted mix reflecting a running-hub clinic.

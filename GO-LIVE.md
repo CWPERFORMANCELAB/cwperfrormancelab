@@ -17,7 +17,7 @@ Tick everything before pointing the domain and Instagram at the new site.
 ## Real business details
 - [ ] New business phone and email in `config/business.ts`
 - [ ] BASRaT number (if applicable), ICO registration, Instagram, Google review link
-- [ ] Hours, caps, policy, prices, durations and voucher prices confirmed in `config/seed-settings.ts`, then `npm run apply:client-details`
+- [ ] Daily limits, policy, prices, durations and voucher prices confirmed in `config/seed-settings.ts`, then `npm run apply:client-details`
 - [ ] Real photos (headshot, treatment, clinic, community, boots, cupping) and video clips in `public/media/`
 - [ ] Vector logo files in `public/brand/`
 - [ ] Real testimonials (with permission) and approved FAQ answers
@@ -46,6 +46,7 @@ Tick everything before pointing the domain and Instagram at the new site.
 - [ ] Christopher has signed in, set up 2FA and stored recovery codes
 - [ ] Default `ADMIN_PASSWORD` changed
 - [ ] Google Calendar connected (optional)
+- [ ] **Availability entered** in Dashboard → Availability for the first few weeks (nothing is bookable until he does)
 - [ ] Time off / holidays blocked out
 
 ## Data

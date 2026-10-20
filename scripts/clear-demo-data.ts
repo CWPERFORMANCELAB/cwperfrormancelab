@@ -26,6 +26,7 @@ export async function clearDemoData(db: Db, opts: { quiet?: boolean } = {}) {
     await run("vouchers", sql`delete from vouchers where is_demo`);
     await run("package_purchases", sql`delete from package_purchases where is_demo`);
     await run("enquiries", sql`delete from enquiries where is_demo`);
+    await run("availability_days", sql`delete from availability_days where is_demo`);
     await run("client_otps", sql`delete from client_otps where client_id in ${demoClients}`);
     await run("clients", sql`delete from clients where is_demo and not exists (select 1 from bookings b where b.client_id = clients.id)`);
   });

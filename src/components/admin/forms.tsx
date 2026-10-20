@@ -306,51 +306,22 @@ export function SettingForm({ settingKey, value, labels = {} }: { settingKey: Se
 
 const DAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export function WorkingHoursForm({ value, caps }: { value: Record<string, { open: string; close: string }[]>; caps: Record<string, number> }) {
+/** Max appointments per day, by weekday. Hours themselves are entered per date in Bookings → Availability. */
+export function DailyCapsForm({ caps }: { caps: Record<string, number> }) {
   const { pending, run, msg } = useAction();
-  const [h, setH] = useState(value);
   const [c, setC] = useState(caps);
   const order = ["1", "2", "3", "4", "5", "6", "0"];
   return (
     <div className="space-y-3">
-      <div className="divide-y divide-ink/[0.06]">
-        {order.map((d) => {
-          const r = h[d]?.[0];
-          return (
-            <div key={d} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
-              <label className="flex w-32 items-center gap-2">
-                <input type="checkbox" checked={!!r} className="accent-primary" onChange={(e) => setH((p) => ({ ...p, [d]: e.target.checked ? [{ open: "09:00", close: "17:00" }] : [] }))} /> {DAY[Number(d)]}
-              </label>
-              {r ? (
-                <>
-                  <input type="time" value={r.open} onChange={(e) => setH((p) => ({ ...p, [d]: [{ ...r, open: e.target.value }] }))} className="field w-auto py-1.5" aria-label={`${DAY[Number(d)]} open`} />
-                  <span>to</span>
-                  <input type="time" value={r.close} onChange={(e) => setH((p) => ({ ...p, [d]: [{ ...r, close: e.target.value }] }))} className="field w-auto py-1.5" aria-label={`${DAY[Number(d)]} close`} />
-                  <label className="ml-auto flex items-center gap-2 text-ink/60">
-                    Max/day
-                    <input type="number" min={0} value={c[d]} onChange={(e) => setC((p) => ({ ...p, [d]: Number(e.target.value) }))} className="field w-20 py-1.5" />
-                  </label>
-                </>
-              ) : (
-                <span className="text-ink/65">Closed</span>
-              )}
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+        {order.map((d) => (
+          <L key={d} label={DAY[Number(d)]}>
+            <input type="number" min={0} max={30} value={c[d]} onChange={(e) => setC((p) => ({ ...p, [d]: Number(e.target.value) }))} className="field py-1.5" />
+          </L>
+        ))}
       </div>
-      <button
-        className="btn-dark btn-sm"
-        disabled={pending}
-        onClick={() =>
-          run(async () => {
-            const a = await saveSettingAction("workingHours", JSON.stringify(h));
-            if (!a.ok) return a;
-            const capsOut = Object.fromEntries(Object.entries(c).map(([k, v]) => [k, h[k]?.length ? v : 0]));
-            return saveSettingAction("dailyCaps", JSON.stringify(capsOut));
-          })
-        }
-      >
-        Save hours & caps
+      <button className="btn-dark btn-sm" disabled={pending} onClick={() => run(() => saveSettingAction("dailyCaps", JSON.stringify(c)))}>
+        Save limits
       </button>
       {msg}
     </div>

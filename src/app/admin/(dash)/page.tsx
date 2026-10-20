@@ -2,12 +2,14 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { BarList, Badge, Card, Empty, PageHeader, Segmented, Stat } from "@/components/admin/ui";
+import { business } from "@config/business";
 import { getDb } from "@/db/client";
+import { loadDayHours } from "@/lib/availability";
 import { availableMinutes, bookingCounts, dayFill, moneyBreakdown, newSince, rangeFor, revenue, revenueByService, upcoming } from "@/lib/admin/stats";
 import { currentSession, requireAdmin } from "@/lib/auth";
 import { formatPence } from "@/lib/money";
 import { loadSettings } from "@/lib/settings";
-import { formatLocal, formatTime, todayLocal } from "@/lib/time";
+import { addDaysIso, formatLocal, formatTime, localDateOf, todayLocal } from "@/lib/time";
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 const delta = (a: number, b: number) => (b ? (a - b) / b : a ? 1 : null);
@@ -37,9 +39,10 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/admin">["s
     dayFill(db, settings, todayLocal(), 7),
     newSince(db, session?.u.previousLoginAt ?? null),
   ]);
-  const avail = availableMinutes(settings.workingHours, r);
+  const entered = await loadDayHours(db, business.practitioner.id, localDateOf(r.prev.start), addDaysIso(localDateOf(r.end), 1));
+  const avail = availableMinutes(r, entered);
   const util = avail ? counts.bookedMinutes / avail : 0;
-  const prevAvail = availableMinutes(settings.workingHours, r.prev);
+  const prevAvail = availableMinutes(r.prev, entered);
   const prevUtil = prevAvail ? prevCounts.bookedMinutes / prevAvail : 0;
 
   const periods = [
@@ -105,7 +108,7 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/admin">["s
                 <div className="h-2 flex-1 rounded-full bg-ink/[0.06]">
                   {d.cap > 0 && <div className="h-2 rounded-full bg-primary" style={{ width: `${Math.min(100, (d.count / d.cap) * 100)}%` }} />}
                 </div>
-                <span className="w-12 shrink-0 text-right tabular-nums text-ink/70">{d.cap ? `${d.count}/${d.cap}` : "Closed"}</span>
+                <span className="w-12 shrink-0 text-right tabular-nums text-ink/70">{d.cap ? `${d.count}/${d.cap}` : "Off"}</span>
               </li>
             ))}
           </ul>

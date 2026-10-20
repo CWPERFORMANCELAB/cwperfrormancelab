@@ -205,6 +205,24 @@ export const bookings = pgTable(
   ],
 );
 
+/**
+ * Bookable hours entered per date in the dashboard (Availability). There are no default weekly hours: a date with
+ * no row is not bookable. `cap` (optional) replaces that weekday's daily appointment limit. Time off and Google
+ * Calendar events are still subtracted on top.
+ */
+export const availabilityDays = pgTable(
+  "availability_days",
+  {
+    practitionerId: text("practitioner_id").notNull().references(() => practitioners.id),
+    date: date("date").notNull(), // London calendar date, YYYY-MM-DD
+    ranges: jsonb("ranges").$type<{ open: string; close: string }[]>().notNull(),
+    cap: integer("cap"),
+    isDemo: boolean("is_demo").notNull().default(false), // sample hours from seed:demo-data; removed by clear:demo-data
+    updatedAt: updatedAt(),
+  },
+  (t) => [primaryKey({ columns: [t.practitionerId, t.date] })],
+);
+
 export const blockedTimes = pgTable(
   "blocked_times",
   {

@@ -18,6 +18,7 @@ const routes = [
   `/admin/bookings/${ids.bookingId}`,
   "/admin/bookings/new",
   "/admin/bookings/time-off",
+  "/admin/availability",
   "/admin/clients",
   `/admin/clients/${ids.clientId}`,
   "/admin/enquiries",

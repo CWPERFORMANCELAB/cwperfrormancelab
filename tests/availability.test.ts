@@ -3,7 +3,7 @@ import { seedSettings } from "@config/seed-settings";
 import { slotsForDay, type DayInput } from "@/lib/availability/engine";
 import type { Settings } from "@/lib/settings-schema";
 import { formatTime, localToUtc } from "@/lib/time";
-import { MON, SAT, SUN } from "./helpers";
+import { MON, SAT, SUN, testHours } from "./helpers";
 
 const s = Object.fromEntries(seedSettings.map((x) => [x.key, x.value])) as unknown as Settings;
 const service = { durationMin: 60, bufferMin: 10, runsConcurrently: false };
@@ -13,8 +13,8 @@ function day(over: Partial<DayInput> = {}): DayInput {
   return {
     dateIso: MON,
     service,
-    workingHours: s.workingHours,
     dailyCaps: s.dailyCaps,
+    hours: testHours(over.dateIso ?? MON),
     rules: s.bookingRules,
     busy: [],
     bookingsOnDay: 0,
@@ -24,7 +24,7 @@ function day(over: Partial<DayInput> = {}): DayInput {
 }
 const times = (r: { slots: Date[] }) => r.slots.map(formatTime);
 
-describe("working hours", () => {
+describe("entered hours", () => {
   it("offers 15-minute slots inside Mon–Fri 08:00–19:00, ending by close", () => {
     const r = slotsForDay(day());
     expect(times(r)[0]).toBe("08:00");
@@ -38,7 +38,7 @@ describe("working hours", () => {
     expect(times(r).at(-1)).toBe("14:00");
   });
 
-  it("is closed on Sunday", () => {
+  it("a day with no hours entered (here: Sunday) isn't bookable", () => {
     expect(slotsForDay(day({ dateIso: SUN }))).toMatchObject({ slots: [], reason: "closed" });
   });
 });

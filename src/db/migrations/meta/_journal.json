@@ -64,6 +64,20 @@
       "when": 1792440996581,
       "tag": "0008_webhook_attempts",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792522429763,
+      "tag": "0009_availability_days",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792523768050,
+      "tag": "0010_availability_demo_flag",
+      "breakpoints": true
     }
   ]
 }

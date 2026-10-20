@@ -29,7 +29,7 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
       <main id="main">{children}</main>
       <SiteFooter year={year} />
       <CookieBanner />
-      <JsonLd data={businessJsonLd(catalog.services, catalog.workingHours)} />
+      <JsonLd data={businessJsonLd(catalog.services)} />
     </>
   );
 }

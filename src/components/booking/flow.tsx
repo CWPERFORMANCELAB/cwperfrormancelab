@@ -350,7 +350,12 @@ function TimeStep({ service, onChangeService, onHeld, onError }: { service: Flow
                 );
               })}
             </div>
-            {!firstAvailable && <p className="mt-3 text-sm text-bone/60">No times in these dates. Try later dates.</p>}
+            {!firstAvailable && (
+              <p className="mt-3 text-sm text-bone/60">
+                No times in these dates. Try later dates, or{" "}
+                <Link href="/contact" className="text-bone underline">get in touch</Link> and we&apos;ll find a time.
+              </p>
+            )}
           </>
         )}
       </div>

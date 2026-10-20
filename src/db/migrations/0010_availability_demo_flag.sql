@@ -1,0 +1,1 @@
+ALTER TABLE "availability_days" ADD COLUMN "is_demo" boolean DEFAULT false NOT NULL;

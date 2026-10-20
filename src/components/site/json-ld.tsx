@@ -1,21 +1,16 @@
 import { business, hasBasrat } from "@config/business";
 import type { PublicService } from "@/lib/data/public";
 import { siteUrl } from "@/lib/url";
-import type { Settings } from "@/lib/settings-schema";
 
-const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /**
  * LocalBusiness structured data generated from config/business.ts + live settings.
  * Type: MedicalBusiness (DECISIONS.md #8) — the LocalBusiness subtype for health-service providers that doesn't
  * imply a protected title (Physiotherapy) or a multi-practitioner facility (MedicalClinic).
  */
-export function businessJsonLd(services: PublicService[], hours: Settings["workingHours"]) {
+export function businessJsonLd(services: PublicService[]) {
   const a = business.address;
   const sameAs = Object.values(business.social).filter(Boolean);
-  const opening = Object.entries(hours).flatMap(([d, ranges]) =>
-    ranges.map((r) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: `https://schema.org/${dayNames[Number(d)]}`, opens: r.open, closes: r.close })),
-  );
   return {
     "@context": "https://schema.org",
     "@type": business.seo.schemaType,
@@ -40,7 +35,6 @@ export function businessJsonLd(services: PublicService[], hours: Settings["worki
     },
     geo: { "@type": "GeoCoordinates", latitude: a.lat, longitude: a.lng },
     areaServed: [{ "@type": "City", name: "Manchester" }, "Salford", "Cheetham Hill", "M8"],
-    openingHoursSpecification: opening,
     ...(sameAs.length ? { sameAs } : {}),
     founder: {
       "@type": "Person",

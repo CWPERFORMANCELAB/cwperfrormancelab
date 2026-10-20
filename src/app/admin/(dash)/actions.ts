@@ -27,9 +27,10 @@ import { cancelBooking, createAdminBooking, markOutcome, rescheduleBooking } fro
 import { encrypt } from "@/lib/crypto";
 import { createPaymentLink } from "@/lib/payment-links";
 import { refundPayment } from "@/lib/payments/handlers";
+import { bookingsOutside, clearDays, parseCap, parseDates, parseRanges, setDays } from "@/lib/availability/plan";
 import { saveSetting } from "@/lib/settings";
 import { settingsSchemas, type SettingKey } from "@/lib/settings-schema";
-import { localToUtc } from "@/lib/time";
+import { formatLocal, localToUtc } from "@/lib/time";
 import { addMonths, createVoucher, normaliseCode } from "@/lib/vouchers";
 
 export type ActionResult = { ok: true; message?: string; data?: unknown } | { ok: false; error: string };
@@ -171,6 +172,48 @@ export async function addTimeOffAction(input: { startDate: string; startTime: st
     const [row] = await db.insert(blockedTimes).values({ practitionerId: business.practitioner.id, startsAt, endsAt, reason: input.reason || "Time off" }).returning();
     await audit(db, { actor: admin.email, action: "timeoff.add", entityType: "blocked_time", entityId: row.id });
     return "Time blocked out.";
+  });
+}
+
+/* ------------------------------------------------------------ availability */
+
+const PRACTITIONER = business.practitioner.id;
+
+/** Adds a warning naming existing bookings now outside the hours (they're kept, never auto-cancelled). */
+function withClashes(message: string, clashes: Awaited<ReturnType<typeof bookingsOutside>>) {
+  if (!clashes.length) return message;
+  const list = clashes.slice(0, 5).map((b) => `${formatLocal(b.startsAt, "EEE d MMM HH:mm")} ${b.firstName ?? "Client"} (${b.service})`).join("; ");
+  const more = clashes.length > 5 ? ` and ${clashes.length - 5} more` : "";
+  return `${message} Heads up: ${clashes.length} existing booking${clashes.length === 1 ? " is" : "s are"} outside these hours and still booked: ${list}${more}. Move or cancel ${clashes.length === 1 ? "it" : "them"} if needed.`;
+}
+const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+
+/** Save the same hours on every picked day. Live on the booking page immediately (slots are never cached). */
+export async function setAvailabilityAction(input: { dates: string[]; ranges: { open: string; close: string }[]; cap?: number | null }) {
+  return act(async (admin) => {
+    const db = await getDb();
+    const dates = parseDates(input.dates);
+    const ranges = parseRanges(input.ranges);
+    const cap = parseCap(input.cap);
+    await setDays(db, PRACTITIONER, dates, { ranges, cap });
+    await audit(db, { actor: admin.email, action: "availability.set", entityType: "availability", meta: { dates, ranges, cap } });
+    const t12 = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return `${h % 12 || 12}${m ? `:${String(m).padStart(2, "0")}` : ""}${h < 12 ? "am" : "pm"}`;
+    };
+    const hours = ranges.map((r) => `${t12(r.open)}–${t12(r.close)}`).join(" & ");
+    return withClashes(`Saved ${hours} on ${plural(dates.length, "day")}. Clients can book these times now.`, await bookingsOutside(db, PRACTITIONER, dates, ranges));
+  });
+}
+
+/** Remove the hours from the picked days: clients can't book them. */
+export async function clearAvailabilityAction(input: { dates: string[] }) {
+  return act(async (admin) => {
+    const db = await getDb();
+    const dates = parseDates(input.dates);
+    await clearDays(db, PRACTITIONER, dates);
+    await audit(db, { actor: admin.email, action: "availability.clear", entityType: "availability", meta: { dates } });
+    return withClashes(`${plural(dates.length, "day")} set to unavailable.`, await bookingsOutside(db, PRACTITIONER, dates, []));
   });
 }
 

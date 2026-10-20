@@ -5,6 +5,9 @@ import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { requireAdmin } from "@/lib/auth";
 import { bookings, clients, payments, refunds, services, voucherRedemptions } from "@/db/schema";
+import { business } from "@config/business";
+import { loadDayHours } from "@/lib/availability";
+import { dayHours, type DayAvailability } from "@/lib/availability/engine";
 import type { Settings } from "@/lib/settings-schema";
 import { addDaysIso, localDateOf, localDayBounds, localToUtc, localWeekday, todayLocal } from "@/lib/time";
 
@@ -114,11 +117,11 @@ export async function bookingCounts(db: Db, r: Range) {
   };
 }
 
-/** Bookable minutes in a range from working hours (ignores time off — utilisation of the standard week). */
-export function availableMinutes(hours: Settings["workingHours"], r: Range) {
+/** Bookable minutes in a range from the hours entered per date (ignores time off). */
+export function availableMinutes(r: Range, entered: Map<string, DayAvailability>) {
   let mins = 0;
   for (let d = localDateOf(r.start); localToUtc(d, "00:00") < r.end; d = addDaysIso(d, 1)) {
-    for (const h of hours[localWeekday(d) as 0]) {
+    for (const h of entered.get(d)?.ranges ?? []) {
       const [oh, om] = h.open.split(":").map(Number);
       const [ch, cm] = h.close.split(":").map(Number);
       mins += ch * 60 + cm - (oh * 60 + om);
@@ -137,10 +140,10 @@ export async function dayFill(db: Db, settings: Settings, fromIso: string, days:
     .where(and(inArray(bookings.status, ["confirmed", "attended", "pending_payment", "no_show", "late_cancelled"]), gte(bookings.startsAt, start), lt(bookings.startsAt, end)));
   const counts = new Map<string, number>();
   for (const r of rows) counts.set(localDateOf(r.startsAt), (counts.get(localDateOf(r.startsAt)) ?? 0) + 1);
+  const entered = await loadDayHours(db, business.practitioner.id, fromIso, addDaysIso(fromIso, days));
   return Array.from({ length: days }, (_, i) => {
     const d = addDaysIso(fromIso, i);
-    const cap = settings.dailyCaps[localWeekday(d) as 0];
-    return { dateIso: d, count: counts.get(d) ?? 0, cap };
+    return { dateIso: d, count: counts.get(d) ?? 0, cap: dayHours(d, settings.dailyCaps, entered.get(d)).cap };
   });
 }
 
