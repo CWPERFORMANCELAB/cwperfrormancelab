@@ -7,13 +7,6 @@ import { clearAvailabilityAction, setAvailabilityAction } from "@/app/admin/(das
 import type { CalendarDay } from "@/lib/availability/plan";
 import { useAction } from "./client";
 
-const PRESETS = [
-  { label: "9am – 5pm", open: "09:00", close: "17:00" },
-  { label: "8am – 7pm", open: "08:00", close: "19:00" },
-  { label: "Mornings 8am – 1pm", open: "08:00", close: "13:00" },
-  { label: "Afternoons 1pm – 6pm", open: "13:00", close: "18:00" },
-  { label: "Evenings 4pm – 8pm", open: "16:00", close: "20:00" },
-];
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
 const short = (t: string) => {
@@ -33,29 +26,31 @@ const longDate = (iso: string) => utc(iso).toLocaleString("en-GB", { weekday: "s
 /** "Sun 25 Oct, Sun 1 Nov, Sun 8 Nov +3 more" */
 const summary = (dates: string[]) => (dates.length <= 3 ? dates.map(longDate).join(", ") : `${dates.slice(0, 3).map(longDate).join(", ")} +${dates.length - 3} more`);
 
-/** Turn "open, close, optional break" into the ranges the server stores. */
-function toRanges(open: string, close: string, brk: { from: string; to: string } | null) {
-  if (!brk) return [{ open, close }];
-  return [
-    { open, close: brk.from },
-    { open: brk.to, close },
-  ];
+type Period = { open: string; close: string };
+const MAX_PERIODS = 3;
+const hhmm = (min: number) => `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+
+/** A sensible next period: starts an hour after the last one ends, runs 3 hours (kept within the day). */
+function nextPeriod(periods: Period[]): Period {
+  const lastEnd = Math.max(...periods.map((p) => (p.close ? toMin(p.close) : 0)));
+  const start = Math.min(lastEnd + 60, 20 * 60);
+  return { open: hhmm(start), close: hhmm(Math.min(start + 180, 23 * 60)) };
 }
-function problem(open: string, close: string, brk: { from: string; to: string } | null): string | null {
-  if (!open || !close) return "Enter a start and finish time.";
-  if (toMin(close) <= toMin(open)) return "Finish time must be after the start time.";
-  if (brk) {
-    if (!brk.from || !brk.to || toMin(brk.to) <= toMin(brk.from)) return "The break must end after it starts.";
-    if (toMin(brk.from) <= toMin(open) || toMin(brk.to) >= toMin(close)) return "The break must be inside your hours.";
+
+function problem(periods: Period[]): string | null {
+  for (const p of periods) {
+    if (!p.open || !p.close) return "Enter a start and finish time for each period.";
+    if (toMin(p.close) <= toMin(p.open)) return `${short(p.open)}–${short(p.close)}: the finish must be after the start.`;
+  }
+  const sorted = [...periods].sort((a, b) => toMin(a.open) - toMin(b.open));
+  for (let i = 1; i < sorted.length; i++) {
+    if (toMin(sorted[i].open) < toMin(sorted[i - 1].close)) return "Two of your time periods overlap.";
   }
   return null;
 }
 
 export function AvailabilityCalendar({ months, days, today, prevHref, nextHref }: { months: string[]; days: CalendarDay[]; today: string; prevHref: string | null; nextHref: string }) {
-  const [open, setOpen] = useState("09:00");
-  const [close, setClose] = useState("17:00");
-  const [brk, setBrk] = useState<{ from: string; to: string } | null>(null);
-  const [cap, setCap] = useState("");
+  const [periods, setPeriods] = useState<Period[]>([{ open: "09:00", close: "17:00" }]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [anchor, setAnchor] = useState<string | null>(null);
   const { pending, run, msg } = useAction();
@@ -63,8 +58,10 @@ export function AvailabilityCalendar({ months, days, today, prevHref, nextHref }
   const byDate = useMemo(() => new Map(days.map((d) => [d.dateIso, d])), [days]);
   const future = days.filter((d) => d.dateIso >= today).map((d) => d.dateIso);
   const dates = [...selected].sort();
-  const err = problem(open, close, brk);
-  const hoursText = err ? "" : toRanges(open, close, brk).map((r) => `${short(r.open)}–${short(r.close)}`).join(" & ");
+  const err = problem(periods);
+  const ranges = [...periods].sort((a, b) => toMin(a.open) - toMin(b.open));
+  const hoursText = err ? "" : ranges.map((r) => `${short(r.open)}–${short(r.close)}`).join(" & ");
+  const setPeriod = (i: number, k: keyof Period, v: string) => setPeriods((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p)));
 
   const click = (iso: string, shift: boolean) => {
     setSelected((s) => {
@@ -100,44 +97,32 @@ export function AvailabilityCalendar({ months, days, today, prevHref, nextHref }
       {/* Step 1 */}
       <section className="rounded-xl border border-ink/[0.08] bg-white p-5">
         <h2 className="text-sm font-semibold"><span className="mr-2 inline-grid size-6 place-items-center rounded-full bg-primary text-xs">1</span>Your hours</h2>
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-ink/60">Start</span>
-            <input type="time" className="field w-32 py-2" value={open} onChange={(e) => setOpen(e.target.value)} />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-ink/60">Finish</span>
-            <input type="time" className="field w-32 py-2" value={close} onChange={(e) => setClose(e.target.value)} />
-          </label>
-          {brk ? (
-            <div className="flex items-end gap-2 rounded-lg bg-ink/[0.03] p-2">
+        <p className="mt-1 text-xs text-ink/55">The times clients can book on the days you pick next.</p>
+        <div className="mt-4 space-y-3">
+          {periods.map((p, i) => (
+            <div key={i} className="flex flex-wrap items-end gap-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-ink/60">Break from</span>
-                <input type="time" className="field w-32 py-2" value={brk.from} onChange={(e) => setBrk({ ...brk, from: e.target.value })} />
+                <span className="mb-1 block text-xs font-medium text-ink/60">{periods.length > 1 ? `Period ${i + 1}: start` : "Start"}</span>
+                <input type="time" className="field w-36 py-2" value={p.open} onChange={(e) => setPeriod(i, "open", e.target.value)} />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-ink/60">until</span>
-                <input type="time" className="field w-32 py-2" value={brk.to} onChange={(e) => setBrk({ ...brk, to: e.target.value })} />
+                <span className="mb-1 block text-xs font-medium text-ink/60">Finish</span>
+                <input type="time" className="field w-36 py-2" value={p.close} onChange={(e) => setPeriod(i, "close", e.target.value)} />
               </label>
-              <button type="button" className="mb-2 px-1 text-sm text-ink/50 hover:text-danger" aria-label="Remove break" onClick={() => setBrk(null)}>×</button>
+              {i > 0 && (
+                <button type="button" className="mb-2.5 text-sm text-ink/55 hover:text-danger" onClick={() => setPeriods((ps) => ps.filter((_, j) => j !== i))}>
+                  Remove
+                </button>
+              )}
             </div>
-          ) : (
-            <button type="button" className="mb-2.5 text-sm font-medium text-primary-strong hover:underline" onClick={() => setBrk({ from: "12:00", to: "13:00" })}>+ Add a break</button>
-          )}
-        </div>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {PRESETS.map((p) => (
-            <button key={p.label} type="button" className="chip" onClick={() => (setOpen(p.open), setClose(p.close))}>{p.label}</button>
           ))}
         </div>
-        <details className="mt-3 text-sm">
-          <summary className="cursor-pointer text-ink/60">More options</summary>
-          <label className="mt-2 flex items-center gap-2 text-ink/70">
-            Max appointments on these days
-            <input type="number" min={1} max={30} placeholder="default" className="field w-24 py-1.5" value={cap} onChange={(e) => setCap(e.target.value)} />
-          </label>
-          <p className="mt-1 text-xs text-ink/50">Leave blank to use your daily limits from Settings.</p>
-        </details>
+        {periods.length < MAX_PERIODS && (
+          <button type="button" className="mt-3 text-sm font-medium text-primary-strong hover:underline" onClick={() => setPeriods((ps) => [...ps, nextPeriod(ps)])}>
+            + Add another time period
+          </button>
+        )}
+        {periods.length > 1 && !err && <p className="mt-2 text-xs text-ink/55">Clients can book {hoursText}, and nothing in between.</p>}
         {err && <p className="mt-3 text-sm text-danger">{err}</p>}
       </section>
 
@@ -207,7 +192,10 @@ export function AvailabilityCalendar({ months, days, today, prevHref, nextHref }
                         <span className="text-sm font-semibold tabular-nums">{Number(iso.slice(8))}</span>
                         {avail && !past && (
                           <span className={`mt-0.5 hidden text-[10px] leading-tight sm:block ${on ? "text-bone/80" : "text-ink/70"}`}>
-                            {short(d!.ranges[0].open)}–{short(d!.ranges[d!.ranges.length - 1].close)}
+                            {/* One line per period, so a split day (morning + evening) shows its gap. */}
+                            {d!.ranges.map((r) => (
+                              <span key={r.open} className="block">{short(r.open)}–{short(r.close)}</span>
+                            ))}
                           </span>
                         )}
                         {!!d?.booked && !past && <span className={`absolute top-1 right-1 size-1.5 rounded-full ${on ? "bg-bone" : "bg-ink/60"}`} aria-hidden />}
@@ -251,7 +239,7 @@ export function AvailabilityCalendar({ months, days, today, prevHref, nextHref }
                   type="button"
                   className="btn-primary btn-sm"
                   disabled={pending || !!err}
-                  onClick={() => done(() => setAvailabilityAction({ dates, ranges: toRanges(open, close, brk), cap: cap ? Number(cap) : null }))}
+                  onClick={() => done(() => setAvailabilityAction({ dates, ranges, cap: null }))}
                 >
                   {err ? "Fix your hours first" : `Available ${hoursText} on ${selected.size} day${selected.size === 1 ? "" : "s"}`}
                 </button>

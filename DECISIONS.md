@@ -222,3 +222,10 @@ Non-obvious choices, newest last.
     set and clear, time off on top, clash warnings, the calendar data, validation, and demo clearing that keeps real
     hours). The shared test database enters a fixed pattern for its date window (`tests/helpers.ts`), and the
     forged-cookie e2e test covers the new route.
+41. **Availability "Your hours" simplified (client feedback).** The preset buttons, the "break" control and the
+    per-day max-appointments option are removed. Step 1 is now just a start and finish time, plus "+ Add another time
+    period" (up to 3 per day) for split days such as 8am–12pm and 5pm–8pm; clients can't book the gap. Periods are
+    checked in the browser and again on the server (`parseRanges`: finish after start, no overlaps). Calendar tiles
+    show each period on its own line so a split day's gap is visible. The daily limits in Settings still apply.
+    Verified in the browser: saving 8am–12pm and 5pm–8pm on one day made the booking page offer 08:00–11:00 and
+    17:00–19:00 starts (60-minute session) and nothing between.
