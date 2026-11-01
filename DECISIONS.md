@@ -229,3 +229,12 @@ Non-obvious choices, newest last.
     show each period on its own line so a split day's gap is visible. The daily limits in Settings still apply.
     Verified in the browser: saving 8am–12pm and 5pm–8pm on one day made the booking page offer 08:00–11:00 and
     17:00–19:00 starts (60-minute session) and nothing between.
+42. **Testimonials removed (client request).** The homepage section, the `/testimonials` page, the footer link, the
+    sitemap entry, `content/testimonials.json` and its go-live placeholder check are gone. The review-request email
+    no longer falls back to `/testimonials` when no Google review link is set; it was already skipped in that case.
+43. **Local builds use an in-memory database.** `next build` prerenders in several worker processes at once. With
+    PGlite, each worker opened the same on-disk folder, and it was the dev server's live `.data/pglite`. That
+    corrupted the local demo database on 27 Oct, and it failed the build whenever the dev server was running.
+    `build:local` (and so `test:e2e`) now sets `PGLITE_MEMORY=1`, so each worker gets its own throwaway database,
+    seeded from config, and nothing is written to disk. Production builds are unaffected (they use `DATABASE_URL`).
+    Verified: `npm run test:e2e` passes (88) with the dev server running, and the dev database stays healthy.
