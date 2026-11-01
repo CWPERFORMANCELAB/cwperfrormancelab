@@ -78,7 +78,7 @@ export const business = {
 
   legal: {
     /** Data retention for clinical/intake records, in years. */
-    retentionYears: 8, // PLACEHOLDER: confirm retention period (BASRaT guidance is typically 8 years; longer for under-18s)
+    retentionYears: 8, // confirmed 2026-11-01 (under-18s: until age 25, see compliance setting)
     icoRegistration: "", // PLACEHOLDER: ICO registration number (likely required — see CLIENT_TODO.md)
   },
 } as const;

@@ -254,3 +254,6 @@ Non-obvious choices, newest last.
     inline settings markers, and legal review, which the client chose to make a warning. The site URL isn't blocking
     here because the production env check already requires `NEXT_PUBLIC_SITE_URL`. Remaining blockers: record
     retention, and paymentDefaults (pay in full, no VAT). Test: `tests/placeholders.test.ts`.
+46. **Last launch blockers confirmed (2026-11-01).** Client records are kept for 8 years (under-18s until age 25),
+    and clients pay in full when booking with no VAT. `check:placeholders -- --production` now reports nothing
+    blocking. The 30 remaining items are warnings in `CLIENT_TODO.md`.

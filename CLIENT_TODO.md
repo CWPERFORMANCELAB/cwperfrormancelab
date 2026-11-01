@@ -6,23 +6,8 @@ Everything below is running on a **placeholder** value. Once Christopher confirm
 then run `npm run apply:client-details` (for settings/services) and `npm run check:placeholders`.
 See **UPDATING-CLIENT-DETAILS.md** for exactly where each detail goes.
 
-**Blocking launch: 3.** The live site won't build until these are confirmed.
+**Blocking launch: 0.** The live site won't build until these are confirmed.
 **Can wait: 30.** Safe to launch with; each is hidden or has a safe default until confirmed.
-
-# Blocking launch
-
-## Business details
-
-| What | Current value | File | Needed from client |
-| --- | --- | --- | --- |
-| retentionYears | 8 | `config/business.ts:81` | confirm retention period (BASRaT guidance is typically 8 years; longer for under-18s) |
-
-## Settings
-
-| What | Current value | File | Needed from client |
-| --- | --- | --- | --- |
-| paymentDefaults | Pay in full upfront assumed. VAT set to none — confirm with an accountant. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
-| compliance | 8 years for adults (typical UK clinical guidance); under-18 records kept until age 25. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
 
 # Can wait
 
@@ -49,9 +34,9 @@ See **UPDATING-CLIENT-DETAILS.md** for exactly where each detail goes.
 
 | What | Current value | File | Needed from client |
 | --- | --- | --- | --- |
-| expiryMonths | 12 | `config/seed-settings.ts:53` | confirm how long gift vouchers last (12 months assumed) |
-| rehabVideosUrl | (empty — hidden on the site) | `config/seed-settings.ts:85` | link to rehab video library (YouTube/Instagram/Drive) |
-| runsConcurrently | false | `config/seed-settings.ts:212` | blocks his time like any other session until confirmed otherwise |
+| expiryMonths | 12 | `config/seed-settings.ts:52` | confirm how long gift vouchers last (12 months assumed) |
+| rehabVideosUrl | (empty — hidden on the site) | `config/seed-settings.ts:84` | link to rehab video library (YouTube/Instagram/Drive) |
+| runsConcurrently | false | `config/seed-settings.ts:210` | blocks his time like any other session until confirmed otherwise |
 | notifications | Reminders 48h + 2h; thank-you 2h after; review request 24h after first visit; rebook nudge 21 days; lapsed 90 days. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
 
 ## Content

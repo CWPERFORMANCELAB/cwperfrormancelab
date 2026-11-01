@@ -42,8 +42,7 @@ export const seedSettings = [
   }),
   setting({
     key: "paymentDefaults",
-    placeholder: true, // PLACEHOLDER: confirm payment model (full upfront assumed) and VAT position with accountant
-    placeholderNote: "Pay in full upfront assumed. VAT set to none — confirm with an accountant.",
+    placeholder: false, // confirmed 2026-11-01: clients pay in full when booking; no VAT
     value: { model: "full", depositPercent: 50, defaultTaxRateBp: 0 },
   }),
   setting({
@@ -87,8 +86,7 @@ export const seedSettings = [
   }),
   setting({
     key: "compliance",
-    placeholder: true, // PLACEHOLDER: confirm data retention period
-    placeholderNote: "8 years for adults (typical UK clinical guidance); under-18 records kept until age 25.",
+    placeholder: false, // confirmed 2026-11-01: 8 years for adults; under-18 records kept until age 25
     value: { dataRetentionYears: 8, under18RetentionUntilAge: 25 },
   }),
 ] as const satisfies readonly SeedSetting[];
