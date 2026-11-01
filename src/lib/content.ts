@@ -1,7 +1,6 @@
 import faq from "@content/faq.json";
 import media from "@content/media.json";
 import site from "@content/site.json";
-import testimonials from "@content/testimonials.json";
 
 /** Typed access to content/*.json. */
 export const copy = site;
@@ -25,14 +24,6 @@ export function slot(id: keyof typeof media.slots): MediaSlot & { id: string } {
 export function serviceSlot(serviceId: string) {
   const id = (media.services as Record<string, string>)[serviceId] ?? "hero";
   return slot(id as keyof typeof media.slots);
-}
-
-export type Testimonial = { id: string; name: string; context: string; service: string; quote: string; rating: number; placeholder?: boolean };
-/** Placeholder testimonials are never shown in production. */
-export function visibleTestimonials(): (Testimonial & { sample: boolean })[] {
-  const items = testimonials.items as Testimonial[];
-  const prod = process.env.NODE_ENV === "production" && process.env.SHOW_SAMPLE_CONTENT !== "1";
-  return items.filter((t) => !(prod && t.placeholder)).map((t) => ({ ...t, sample: Boolean(t.placeholder) }));
 }
 
 /** Draft FAQs show in development (with a label) and are hidden in production until approved. */

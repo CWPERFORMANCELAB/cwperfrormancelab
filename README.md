@@ -3,7 +3,7 @@
 Website, online booking, payments and admin dashboard for **Christopher Williams, Sport Rehabilitator**
 (Made Running Hub, Manchester M8). Replaces Calendly.
 
-- **Public site:** services, pricing, about, home visits, gift vouchers, testimonials, FAQ, contact, policies
+- **Public site:** services, pricing, about, home visits, gift vouchers, FAQ, contact, policies
 - **Booking:** service → time → details & intake/consent → payment → confirmation, faster than Calendly
 - **Payments:** Stripe Checkout (cards, Apple Pay, Google Pay), deposits / card-on-file, vouchers, discount codes,
   payment links, automatic policy refunds
@@ -65,7 +65,7 @@ npm run clear:demo-data    # removes every demo row; real data is untouched
 | Business facts (names, address, phone, email, BASRaT, socials, SEO) | `config/business.ts` |
 | Brand colours, fonts, radii | `config/theme.css` (only file allowed to contain colours) |
 | Logos, favicons, OG image | `public/brand/` |
-| Copy: about, FAQ, services, policies, page text, testimonials, media slots | `content/` |
+| Copy: about, FAQ, services, policies, page text, media slots | `content/` |
 | Services, daily limits, rules, policy, payments, vouchers, flags, notification timing | `config/seed-settings.ts` → DB → editable in **/admin/settings** |
 | Bookable hours | Entered per date by Christopher in **/admin/availability** (no default weekly hours: a date with no hours isn't bookable) |
 | Email/SMS templates | DB (seeded from `src/lib/notifications/defaults.ts`), editable in **/admin/settings/templates** |

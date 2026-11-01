@@ -86,10 +86,6 @@
     "how": ["Choose a voucher and add a personal message.", "Pay securely. The e-voucher is emailed straight away.", "They redeem the code when booking online."],
     "terms": "Vouchers are valid for {{expiryMonths}} months from purchase and can be redeemed against any service. Any unused balance stays on the code until it expires."
   },
-  "testimonials": {
-    "title": "What clients say",
-    "lede": "Real feedback from people I've helped get back to doing what they love."
-  },
   "faq": { "title": "Frequently asked questions", "lede": "Everything you need to know before your first session." },
   "contact": {
     "title": "Contact & location",

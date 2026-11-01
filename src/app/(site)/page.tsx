@@ -5,7 +5,7 @@ import { MediaImage, MediaVideo } from "@/components/site/media";
 import { SessionPicker } from "@/components/site/picker";
 import { TrustRow } from "@/components/site/trust";
 import { ArrowRight } from "@/components/icons";
-import { copy, serviceMetas, slot, visibleTestimonials } from "@/lib/content";
+import { copy, serviceMetas, slot } from "@/lib/content";
 import { getCatalog } from "@/lib/data/public";
 import { formatPence } from "@/lib/money";
 
@@ -13,7 +13,6 @@ export default async function HomePage() {
   const [{ services }, metas] = await Promise.all([getCatalog(), serviceMetas()]);
   const h = copy.home;
   const assessment = services.find((s) => s.id === "injury-assessment") ?? services[0];
-  const testimonials = visibleTestimonials().slice(0, 3);
 
   return (
     <>
@@ -128,26 +127,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Testimonials */}
-      {testimonials.length > 0 && (
-        <section className="py-20 sm:py-28">
-          <div className="container-x">
-            <SectionHeading eyebrow="Testimonials" title={copy.testimonials.title} />
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              {testimonials.map((t) => (
-                <figure key={t.id} className="card p-6" data-reveal>
-                  {t.sample && <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-warning">Sample: replace with a real review</p>}
-                  <blockquote className="leading-relaxed text-bone/80">&ldquo;{t.quote}&rdquo;</blockquote>
-                  <figcaption className="mt-4 text-sm text-bone/65">
-                    {t.name} · {t.context}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* FAQ */}
       <section className="pb-4">

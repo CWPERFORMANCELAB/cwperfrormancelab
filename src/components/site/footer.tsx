@@ -39,11 +39,6 @@ export function SiteFooter({ year }: { year: number }) {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link href="/testimonials" className="hover:text-bone">
-                  Testimonials
-                </Link>
-              </li>
             </ul>
           </div>
           <div>

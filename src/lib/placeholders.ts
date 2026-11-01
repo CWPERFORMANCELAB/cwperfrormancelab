@@ -96,9 +96,6 @@ export function scanFiles(seed: SeedLike): PlaceholderItem[] {
   for (const f of faq.items.filter((x) => x.draft)) {
     items.push({ id: `faq:${f.id}`, area: "Content", file: "content/faq.json", what: `FAQ: ${f.q}`, current: "Draft answer (hidden in production)", needed: "Client to approve or edit, then set draft: false" });
   }
-  const t = JSON.parse(read("content/testimonials.json")) as { items: { id: string; placeholder?: boolean }[] };
-  const pt = t.items.filter((x) => x.placeholder);
-  if (pt.length) items.push({ id: "testimonials", area: "Content", file: "content/testimonials.json", what: `${pt.length} sample testimonials`, current: "Sample text (hidden in production)", needed: "Real client reviews with written permission" });
 
   const media = JSON.parse(read("content/media.json")) as { slots: Record<string, { file: string; placeholder: boolean; needed?: string; fallback?: string }> };
   for (const [id, s] of Object.entries(media.slots).filter(([, s]) => s.placeholder)) {

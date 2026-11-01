@@ -100,7 +100,7 @@ function baseVars(): Record<string, string> {
     siteUrl: siteUrl(),
     bookUrl: siteUrl("/book"),
     mapsUrl: mapsUrl(),
-    reviewUrl: business.googleReviewUrl || siteUrl("/testimonials"),
+    reviewUrl: business.googleReviewUrl, // review_request is skipped when this is empty
     address: fullAddress(),
     parkingNote: business.address.parkingNote,
   };

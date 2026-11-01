@@ -20,7 +20,7 @@ Tick everything before pointing the domain and Instagram at the new site.
 - [ ] Daily limits, policy, prices, durations and voucher prices confirmed in `config/seed-settings.ts`, then `npm run apply:client-details`
 - [ ] Real photos (headshot, treatment, clinic, community, boots, cupping) and video clips in `public/media/`
 - [ ] Vector logo files in `public/brand/`
-- [ ] Real testimonials (with permission) and approved FAQ answers
+- [ ] Approved FAQ answers
 - [ ] **`npm run check:placeholders -- --production` passes** (exit code 0)
 
 ## Email & SMS
