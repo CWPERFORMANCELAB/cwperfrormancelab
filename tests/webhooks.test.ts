@@ -125,9 +125,9 @@ describe("Stripe webhooks", () => {
   it("voucher purchase: webhook activates the voucher and emails it", async () => {
     await purchaseVoucher(db, { productId: "voucher-60", purchaserName: "Jo", purchaserEmail: "jo@example.com", recipientName: "Kim", recipientEmail: "kim@example.com", now: NOW });
     const [p] = await db.select().from(payments).where(eq(payments.kind, "voucher"));
-    await processStripeEvent(db, completedEvent("evt_v", p.providerSessionId!, 6000));
+    await processStripeEvent(db, completedEvent("evt_v", p.providerSessionId!, 6500));
     const [v] = await db.select().from(vouchers);
-    expect(v).toMatchObject({ status: "active", balancePence: 6000 });
+    expect(v).toMatchObject({ status: "active", balancePence: 6500 }); // 60-minute voucher, £65
     const n = (await db.execute(sql`select "to" from notifications where template_key = 'voucher_purchased' order by "to"`)) as unknown as { rows: { to: string }[] };
     expect(n.rows.map((r) => r.to)).toEqual(["jo@example.com", "kim@example.com"]);
   });

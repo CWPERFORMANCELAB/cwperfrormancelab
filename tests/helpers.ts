@@ -21,6 +21,19 @@ export async function freshDb(): Promise<Db> {
 }
 
 /**
+ * The launch settings have no cancellation fees and SMS off (client decision 2026-11-01). Both are still features
+ * Christopher can switch on, so tests of fee maths and SMS reminders turn them on explicitly.
+ */
+export async function withFees(db: Db, percent = 50) {
+  const { saveSetting } = await import("@/lib/settings");
+  await saveSetting(db, "cancellationPolicy", { freeCancelHours: 24, lateCancelFeePercent: percent, noShowFeePercent: percent, rescheduleDeadlineHours: 24 });
+}
+export async function withSms(db: Db) {
+  const { loadSettings, saveSetting } = await import("@/lib/settings");
+  await saveSetting(db, "features", { ...(await loadSettings(db)).features, smsReminders: true });
+}
+
+/**
  * There are no default weekly hours: only entered dates are bookable. Tests get a fixed pattern entered for the
  * whole test window (Dec 2026 – Apr 2027): Mon–Fri 08:00–19:00, Sat 09:00–15:00, Sunday not available.
  */

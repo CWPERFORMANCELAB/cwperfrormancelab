@@ -6,58 +6,53 @@ Everything below is running on a **placeholder** value. Once Christopher confirm
 then run `npm run apply:client-details` (for settings/services) and `npm run check:placeholders`.
 See **UPDATING-CLIENT-DETAILS.md** for exactly where each detail goes.
 
-**49 placeholders remaining.**
+**Blocking launch: 3.** The live site won't build until these are confirmed.
+**Can wait: 30.** Safe to launch with; each is hidden or has a safe default until confirmed.
+
+# Blocking launch
 
 ## Business details
 
 | What | Current value | File | Needed from client |
 | --- | --- | --- | --- |
-| name | CW Performance Lab | `config/business.ts:10` | confirm trading name (Calendly currently says "CW Sports Rehabilitation & Massage") |
-| legalName | CW Performance Lab | `config/business.ts:12` | legal/trading entity name for receipts |
+| retentionYears | 8 | `config/business.ts:81` | confirm retention period (BASRaT guidance is typically 8 years; longer for under-18s) |
+
+## Settings
+
+| What | Current value | File | Needed from client |
+| --- | --- | --- | --- |
+| paymentDefaults | Pay in full upfront assumed. VAT set to none — confirm with an accountant. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
+| compliance | 8 years for adults (typical UK clinical guidance); under-18 records kept until age 25. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
+
+# Can wait
+
+## Business details
+
+| What | Current value | File | Needed from client |
+| --- | --- | --- | --- |
 | basratNumber | (empty — hidden on the site) | `config/business.ts:25` | BASRaT membership number |
-| phone | 07476 243133 | `config/business.ts:44` | new business phone number (currently personal) |
-| phoneE164 | +447476243133 | `config/business.ts:45` | new business phone number (currently personal) |
-| email | christophwilliams14@gmail.com | `config/business.ts:46` | new business email (currently personal) |
-| whatsapp | https://wa.me/447476243133 | `config/business.ts:47` | follows the business phone number |
 | instagram | (empty — hidden on the site) | `config/business.ts:51` | Instagram profile URL |
 | tiktok | (empty — hidden on the site) | `config/business.ts:52` | TikTok profile URL (optional) |
 | facebook | (empty — hidden on the site) | `config/business.ts:53` | Facebook page URL (optional) |
 | googleReviewUrl | (empty — hidden on the site) | `config/business.ts:56` | Google Business Profile "write a review" link |
 | siteUrl | https://cwperformancelab.co.uk | `config/business.ts:63` | live domain |
-| retentionYears | 8 | `config/business.ts:81` | confirm retention period (BASRaT guidance is typically 8 years; longer for under-18s) |
 | icoRegistration | (empty — hidden on the site) | `config/business.ts:82` | ICO registration number (likely required — see CLIENT_TODO.md) |
 
 ## Brand
 
 | What | Current value | File | Needed from client |
 | --- | --- | --- | --- |
-| --brand-font-sans | var(--font-inter), ui-sans-serif, system-ui, sans-serif | `config/theme.css:32` | brand fonts (Inter / Inter Tight until the client confirms) |
+| --brand-font-sans | var(--font-inter), ui-sans-serif, system-ui, sans-serif | `config/theme.css:33` | brand fonts (Inter / Inter Tight until the client confirms) |
 | Vector logo | Raster artwork embedded in SVG | `public/brand/logo.svg` | True vector logo files (logo.svg, logo-mark.svg) |
 
 ## Settings
 
 | What | Current value | File | Needed from client |
 | --- | --- | --- | --- |
-| rehabVideosUrl | (empty — hidden on the site) | `config/seed-settings.ts:99` | link to rehab video library (YouTube/Instagram/Drive) |
-| runsConcurrently | false | `config/seed-settings.ts:232` | blocks his time like any other session until confirmed otherwise |
-| workingHours | Mon–Fri 08:00–19:00, Sat 09:00–15:00, Sun closed are assumptions. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
-| cancellationPolicy | Assumed: free with 24h+ notice; <24h or no-show = 50%; reschedule up to 24h before. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
-| paymentDefaults | Pay in full upfront assumed. VAT set to none — confirm with an accountant. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
-| vouchers | Brief placeholders: 30 min £35 / 60 min £60 / 90 min £85, 12-month expiry. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
+| expiryMonths | 12 | `config/seed-settings.ts:53` | confirm how long gift vouchers last (12 months assumed) |
+| rehabVideosUrl | (empty — hidden on the site) | `config/seed-settings.ts:85` | link to rehab video library (YouTube/Instagram/Drive) |
+| runsConcurrently | false | `config/seed-settings.ts:212` | blocks his time like any other session until confirmed otherwise |
 | notifications | Reminders 48h + 2h; thank-you 2h after; review request 24h after first visit; rebook nudge 21 days; lapsed 90 days. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
-| compliance | 8 years for adults (typical UK clinical guidance); under-18 records kept until age 25. | `config/seed-settings.ts` | Confirm with client, then set placeholder: false |
-
-## Services
-
-| What | Current value | File | Needed from client |
-| --- | --- | --- | --- |
-| Injury Assessment & Treatment + Rehab Plan (injury-assessment) | £65.00 · 60 min | `config/seed-settings.ts` | Duration is a placeholder — confirm with client. |
-| Full Body MOT (full-body-mot) | £90.00 · 75 min | `config/seed-settings.ts` | Duration is a placeholder — confirm with client. |
-| Sports Massage (sports-massage) | £60.00 · 60 min | `config/seed-settings.ts` | Duration is a placeholder — confirm with client. |
-| Assisted Stretching (assisted-stretching) | £50.00 · 45 min | `config/seed-settings.ts` | Duration is a placeholder — confirm with client. |
-| Dry Cupping (dry-cupping) | £40.00 · 30 min | `config/seed-settings.ts` | Duration is a placeholder — confirm with client. |
-| Compression Boots Recovery Session (compression-boots) | £25.00 · 30 min | `config/seed-settings.ts` | Duration is a placeholder — confirm with client. Calendly lists this as 20 minutes. |
-| Compression Boots Recovery Session (Extended) (compression-boots-extended) | £40.00 · 40 min | `config/seed-settings.ts` | Duration is a placeholder — confirm with client. |
 
 ## Content
 
@@ -69,7 +64,6 @@ See **UPDATING-CLIENT-DETAILS.md** for exactly where each detail goes.
 | FAQ: What's a Sport Rehabilitator? | Draft answer (hidden in production) | `content/faq.json` | Client to approve or edit, then set draft: false |
 | FAQ: I'm not an athlete. Can you still help? | Draft answer (hidden in production) | `content/faq.json` | Client to approve or edit, then set draft: false |
 | FAQ: How do I pay? | Draft answer (hidden in production) | `content/faq.json` | Client to approve or edit, then set draft: false |
-| 3 sample testimonials | Sample text (hidden in production) | `content/testimonials.json` | Real client reviews with written permission |
 
 ## Media
 
@@ -96,7 +90,8 @@ See **UPDATING-CLIENT-DETAILS.md** for exactly where each detail goes.
 
 | Item | Why | Action |
 | --- | --- | --- |
-| **Phone & email are temporary personal details** | 07476243133 / christophwilliams14@gmail.com are being replaced | Provide the new business number and email; update `config/business.ts` |
+| **Cancellation fees** | Launched with no fees (no policy yet). Clients get a full refund on cancellation | When Christopher decides, set fees in Dashboard → Settings → Cancellation & rescheduling, and copy them into `config/seed-settings.ts` |
+| **SMS reminders** | Off at launch (no Twilio account) | Create a Twilio account, add the `TWILIO_*` keys in Vercel, then turn `smsReminders` on |
 | **ICO registration** | He processes health (special category) data, so he very likely needs to register with the ICO and pay the data protection fee | Register at ico.org.uk; add the number to `config/business.ts → legal.icoRegistration` |
 | **VAT position** | Services are set to no VAT. Confirm with an accountant (sport rehab/massage may be standard-rated; VAT registration threshold applies) | Confirm; set `paymentDefaults.defaultTaxRateBp` or per-service `taxRateBp` |
 | **Data retention period** | Clinical records are retained for 8 years (adults) / until age 25 (under-18s) as a placeholder | Confirm against BASRaT guidance and his insurer |

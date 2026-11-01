@@ -7,9 +7,9 @@
  */
 
 export const business = {
-  // PLACEHOLDER: confirm trading name (Calendly currently says "CW Sports Rehabilitation & Massage")
+  // Name, legal name and contact details confirmed by the client (2026-11-01).
   name: "CW Performance Lab",
-  legalName: "CW Performance Lab", // PLACEHOLDER: legal/trading entity name for receipts
+  legalName: "CW Performance Lab",
   tagline: "Move better. Perform better. Return stronger.",
   description:
     "Sports rehabilitation, injury treatment, recovery and performance training in Manchester with Sport Rehabilitator Christopher Williams. Based at Made Running Hub, M8.",
@@ -41,10 +41,10 @@ export const business = {
   },
 
   contact: {
-    phone: "07476 243133", // PLACEHOLDER: new business phone number (currently personal)
-    phoneE164: "+447476243133", // PLACEHOLDER: new business phone number (currently personal)
-    email: "christophwilliams14@gmail.com", // PLACEHOLDER: new business email (currently personal)
-    whatsapp: "https://wa.me/447476243133", // PLACEHOLDER: follows the business phone number
+    phone: "07476 243133",
+    phoneE164: "+447476243133",
+    email: "christophwilliams14@gmail.com",
+    whatsapp: "https://wa.me/447476243133",
   },
 
   social: {

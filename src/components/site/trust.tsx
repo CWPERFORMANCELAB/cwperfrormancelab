@@ -9,7 +9,9 @@ const icons = { shield: Shield, car: Car, card: CreditCard, calendar: Calendar }
 export async function TrustRow({ tone = "dark", className = "" }: { tone?: "dark" | "light"; className?: string }) {
   const { policy } = await getCatalog();
   const items = copy.trust.map((t) =>
-    t.icon === "calendar" ? { ...t, text: `Free cancellation ${policy.freeCancelHours}h+ before` } : t,
+    t.icon === "calendar"
+      ? { ...t, text: policy.lateCancelFeePercent > 0 ? `Free cancellation ${policy.freeCancelHours}h+ before` : "Free cancellation" }
+      : t,
   );
   const muted = tone === "dark" ? "text-bone/65" : "text-ink/60";
   const ic = tone === "dark" ? "text-primary-light" : "text-primary-strong";

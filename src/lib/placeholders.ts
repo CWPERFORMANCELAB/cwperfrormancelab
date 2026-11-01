@@ -6,6 +6,9 @@
  *
  * Sources: `// PLACEHOLDER:` markers in config/ and content/, `placeholder: true` in seed data and content JSON,
  * draft FAQs, and media slots without real files.
+ *
+ * Each item is either BLOCKING (a production build refuses to run: clients would pay against unconfirmed terms) or a
+ * warning (safe to launch with; listed in CLIENT_TODO.md). See `isBlocking`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -17,15 +20,34 @@ export type PlaceholderItem = {
   what: string;
   current: string;
   needed: string;
+  /** True = a production build must not ship with this unconfirmed. */
+  blocking: boolean;
 };
+
+/**
+ * Launch-critical: who the client is paying and how to reach them, what they're buying, the cancellation terms, how
+ * they pay, vouchers and record retention. Everything else (media, draft FAQs, social links, review link, BASRaT/ICO
+ * numbers, brand files, legal review, notification timings, the rehab videos link) is a warning: it's hidden or has a
+ * safe default until confirmed. Legal review is a warning at the client's request (2026-11-01).
+ * The live site URL isn't blocking here because NEXT_PUBLIC_SITE_URL is already required by the production env check.
+ */
+const BLOCKING_BUSINESS_KEYS = new Set(["name", "legalName", "phone", "phoneE164", "email", "retentionYears"]);
+const BLOCKING_SETTINGS = new Set(["cancellationPolicy", "paymentDefaults", "vouchers", "compliance"]);
+
+export function isBlocking(i: Omit<PlaceholderItem, "blocking">): boolean {
+  if (i.area === "Services") return true;
+  if (i.area === "Business details") return BLOCKING_BUSINESS_KEYS.has(i.what);
+  if (i.area === "Settings") return i.id.startsWith("setting:") && BLOCKING_SETTINGS.has(i.what);
+  return false;
+}
 
 const root = () => process.cwd();
 const read = (rel: string) => fs.readFileSync(path.join(/*turbopackIgnore: true*/ root(), rel), "utf8");
 const exists = (rel: string) => fs.existsSync(path.join(/*turbopackIgnore: true*/ root(), rel));
 
-function scanMarkers(rel: string, area: PlaceholderItem["area"], opts: { skip?: RegExp } = {}): PlaceholderItem[] {
+function scanMarkers(rel: string, area: PlaceholderItem["area"], opts: { skip?: RegExp } = {}): Omit<PlaceholderItem, "blocking">[] {
   if (!exists(rel)) return [];
-  const out: PlaceholderItem[] = [];
+  const out: Omit<PlaceholderItem, "blocking">[] = [];
   const lines = read(rel).split("\n");
   // key: "quoted value" | 'quoted' | bare value up to a comma/comment.  Also CSS custom properties.
   const kvRe = /^\s*([A-Za-z0-9_]+)\s*:\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\[[^\]]*\]|[^,/]+?)\s*,?\s*(?:\/\/.*)?$/;
@@ -60,7 +82,7 @@ type SeedLike = {
 
 /** Static scan of files (used by the CLI and CLIENT_TODO.md). `seed` is passed in to avoid importing config here. */
 export function scanFiles(seed: SeedLike): PlaceholderItem[] {
-  const items: PlaceholderItem[] = [
+  const items: Omit<PlaceholderItem, "blocking">[] = [
     ...scanMarkers("config/business.ts", "Business details"),
     ...scanMarkers("config/theme.css", "Brand"),
     // Seed settings are tracked by their placeholder flags; also pick up inline markers on individual fields.
@@ -106,7 +128,7 @@ export function scanFiles(seed: SeedLike): PlaceholderItem[] {
   for (const rel of ["content/policies/privacy.mdx", "content/policies/terms.mdx", "content/policies/cookies.mdx", "content/about.mdx"]) {
     for (const m of scanMarkers(rel, "Legal")) items.push(m);
   }
-  return items;
+  return items.map((i) => ({ ...i, blocking: isBlocking(i) }));
 }
 
 /** DB-backed placeholders for the dashboard banner (reflects edits made in the dashboard). */

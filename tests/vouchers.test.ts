@@ -6,7 +6,7 @@ import { beginCheckout, cancelBooking, createHold, submitDetails } from "@/lib/b
 import { quote } from "@/lib/pricing";
 import { getService, loadSettings } from "@/lib/settings";
 import { createVoucher, redeemVoucher } from "@/lib/vouchers";
-import { freshDb, MON } from "./helpers";
+import { freshDb, MON, withFees } from "./helpers";
 import { at, details, NOW } from "./fixtures";
 
 let db: Db;
@@ -92,6 +92,7 @@ describe("voucher redemption", () => {
   });
 
   it("late cancellation keeps the fee from the voucher", async () => {
+    await withFees(db, 50);
     const v = await createVoucher(db, { valuePence: 6000, expiresAt: future, source: "admin", status: "active" });
     const { booking } = await book(v.code);
     await cancelBooking(db, booking.id, { actor: "client", now: at(MON, "02:00") });

@@ -1,7 +1,7 @@
 import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
 import { business, fullAddress } from "@config/business";
-import { PolicyText, RetentionText, VoucherSetting } from "@/components/site/policy-text";
+import { NoShowText, PolicyText, RetentionText, VoucherSetting } from "@/components/site/policy-text";
 
 /**
  * Components available inside content/*.mdx. Dynamic values are always read from config/settings, never typed
@@ -22,6 +22,7 @@ function Business({ field }: { field: "name" | "practitionerName" | "title" | "a
 const components: MDXComponents = {
   Business,
   Policy: PolicyText,
+  NoShow: NoShowText,
   Retention: RetentionText,
   Vouchers: VoucherSetting,
   a: ({ href = "", children }) =>

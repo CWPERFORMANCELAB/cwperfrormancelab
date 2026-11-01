@@ -238,3 +238,19 @@ Non-obvious choices, newest last.
     `build:local` (and so `test:e2e`) now sets `PGLITE_MEMORY=1`, so each worker gets its own throwaway database,
     seeded from config, and nothing is written to disk. Production builds are unaffected (they use `DATABASE_URL`).
     Verified: `npm run test:e2e` passes (88) with the dev server running, and the dev database stays healthy.
+44. **Launch settings confirmed (2026-11-01).** The client confirmed the business name, contact details, service
+    prices and lengths. Vouchers are £45 / £65 / £95, with the 12-month expiry still to confirm (a warning). There is
+    **no cancellation policy yet**, so the policy has no fees: late-cancel and no-show are 0%, cancelling always
+    refunds in full, and online rescheduling is open up to 24h before. The wording follows the settings:
+    `policySummary()` and the new `noShowSummary()` (terms page `<NoShow />`) never mention a fee when fees are 0, and
+    the trust badge reads "Free cancellation". Fees can be switched on later in Settings; that code is unchanged and
+    still tested (tests set 50% explicitly via `withFees`). SMS reminders are off at launch (no Twilio account), so
+    production no longer requires `TWILIO_*` keys.
+45. **Go-live gate: blocking or "can wait".** Each placeholder now carries `blocking` (`isBlocking` in
+    `src/lib/placeholders.ts`). These block a production build: services, business and legal name, contact details,
+    record retention, and the cancellationPolicy, paymentDefaults, vouchers and compliance settings. Everything else
+    is a warning that never fails a build, and `CLIENT_TODO.md` lists the two groups separately. Warnings include
+    media, draft FAQs, social links, the review link, BASRaT and ICO numbers, brand files, notification timings,
+    inline settings markers, and legal review, which the client chose to make a warning. The site URL isn't blocking
+    here because the production env check already requires `NEXT_PUBLIC_SITE_URL`. Remaining blockers: record
+    retention, and paymentDefaults (pay in full, no VAT). Test: `tests/placeholders.test.ts`.

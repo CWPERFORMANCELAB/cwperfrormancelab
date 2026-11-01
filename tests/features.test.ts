@@ -7,7 +7,7 @@ import { beginCheckout, cancelBooking, createHold, submitDetails } from "@/lib/b
 import { dispatchDue } from "@/lib/notifications/queue";
 import { saveSetting, loadSettings } from "@/lib/settings";
 import { addMinutes } from "@/lib/time";
-import { freshDb, MON } from "./helpers";
+import { freshDb, MON, withSms } from "./helpers";
 import { at, details, NOW } from "./fixtures";
 
 let db: Db;
@@ -90,6 +90,7 @@ describe("notifications", () => {
   }
 
   it("schedules reminders 48h (email) and 2h (SMS) before", async () => {
+    await withSms(db);
     const b = await confirmedBooking();
     const rows = await db.select().from(notifications).where(eq(notifications.bookingId, b.id));
     const r48 = rows.find((r) => r.templateKey === "reminder_48h")!;
@@ -106,7 +107,7 @@ describe("notifications", () => {
     expect(conf.status).toBe("logged");
     expect(conf.body).toContain("Free parking");
     expect(conf.body).toContain("bring shorts");
-    expect(conf.body).toContain("Free cancellation up to 24 hours");
+    expect(conf.body).toContain("Cancel free of charge for a full refund"); // the live (no-fee) launch policy
     expect(conf.body).toMatch(/\/manage\/[\w-]+/);
   });
 

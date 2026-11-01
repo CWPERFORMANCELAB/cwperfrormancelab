@@ -13,20 +13,27 @@ Everything below is running on a **placeholder** value. Once Christopher confirm
 then run \`npm run apply:client-details\` (for settings/services) and \`npm run check:placeholders\`.
 See **UPDATING-CLIENT-DETAILS.md** for exactly where each detail goes.
 
-**${items.length} placeholders remaining.**
+**Blocking launch: ${items.filter((i) => i.blocking).length}.** The live site won't build until these are confirmed.
+**Can wait: ${items.filter((i) => !i.blocking).length}.** Safe to launch with; each is hidden or has a safe default until confirmed.
 `;
-  for (const area of areas) {
-    const list = items.filter((i) => i.area === area);
-    if (!list.length) continue;
-    md += `\n## ${area}\n\n| What | Current value | File | Needed from client |\n| --- | --- | --- | --- |\n`;
-    for (const i of list) md += `| ${esc(i.what)} | ${esc(i.current)} | \`${esc(i.file)}\` | ${esc(i.needed)} |\n`;
+  for (const [title, blocking] of [["Blocking launch", true], ["Can wait", false]] as const) {
+    const group = items.filter((i) => i.blocking === blocking);
+    if (!group.length) continue;
+    md += `\n# ${title}\n`;
+    for (const area of areas) {
+      const list = group.filter((i) => i.area === area);
+      if (!list.length) continue;
+      md += `\n## ${area}\n\n| What | Current value | File | Needed from client |\n| --- | --- | --- | --- |\n`;
+      for (const i of list) md += `| ${esc(i.what)} | ${esc(i.current)} | \`${esc(i.file)}\` | ${esc(i.needed)} |\n`;
+    }
   }
   md += `
 ## Also needed (not stored as placeholders)
 
 | Item | Why | Action |
 | --- | --- | --- |
-| **Phone & email are temporary personal details** | 07476243133 / christophwilliams14@gmail.com are being replaced | Provide the new business number and email; update \`config/business.ts\` |
+| **Cancellation fees** | Launched with no fees (no policy yet). Clients get a full refund on cancellation | When Christopher decides, set fees in Dashboard → Settings → Cancellation & rescheduling, and copy them into \`config/seed-settings.ts\` |
+| **SMS reminders** | Off at launch (no Twilio account) | Create a Twilio account, add the \`TWILIO_*\` keys in Vercel, then turn \`smsReminders\` on |
 | **ICO registration** | He processes health (special category) data, so he very likely needs to register with the ICO and pay the data protection fee | Register at ico.org.uk; add the number to \`config/business.ts → legal.icoRegistration\` |
 | **VAT position** | Services are set to no VAT. Confirm with an accountant (sport rehab/massage may be standard-rated; VAT registration threshold applies) | Confirm; set \`paymentDefaults.defaultTaxRateBp\` or per-service \`taxRateBp\` |
 | **Data retention period** | Clinical records are retained for 8 years (adults) / until age 25 (under-18s) as a placeholder | Confirm against BASRaT guidance and his insurer |

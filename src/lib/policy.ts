@@ -65,6 +65,10 @@ export function canReschedule(booking: { startsAt: Date }, policy: Policy, now: 
 
 /** One sentence used at checkout, in emails, on the FAQ and on the policy page. */
 export function policySummary(policy: Policy): string {
+  if (policy.lateCancelFeePercent === 0 && policy.noShowFeePercent === 0) {
+    // No fees at all: say so plainly rather than implying a charge after the free-cancellation window.
+    return `Cancel free of charge for a full refund (please give at least ${policy.freeCancelHours} hours' notice if you can). You can reschedule free of charge up to ${policy.rescheduleDeadlineHours} hours before.`;
+  }
   const parts = [`Free cancellation up to ${policy.freeCancelHours} hours before your appointment.`];
   if (policy.lateCancelFeePercent > 0) {
     parts.push(
@@ -75,4 +79,11 @@ export function policySummary(policy: Policy): string {
   }
   parts.push(`You can reschedule free of charge up to ${policy.rescheduleDeadlineHours} hours before.`);
   return parts.join(" ");
+}
+
+/** The terms page's missed-appointment sentence, from the same setting so it can't contradict what's enforced. */
+export function noShowSummary(policy: Policy): string {
+  return policy.noShowFeePercent > 0
+    ? `If you don't attend and haven't cancelled, a fee of ${policy.noShowFeePercent}% of the session price applies.`
+    : "If you can't make it, please cancel or let us know as early as you can so someone else can have the slot.";
 }

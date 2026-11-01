@@ -35,9 +35,10 @@ export const seedSettings = [
   }),
   setting({
     key: "cancellationPolicy",
-    placeholder: true, // PLACEHOLDER: confirm cancellation policy and fees
-    placeholderNote: "Assumed: free with 24h+ notice; <24h or no-show = 50%; reschedule up to 24h before.",
-    value: { freeCancelHours: 24, lateCancelFeePercent: 50, noShowFeePercent: 50, rescheduleDeadlineHours: 24 },
+    // Confirmed 2026-11-01: no cancellation policy yet, so no fees. Clients cancel for a full refund and reschedule
+    // online up to 24h before. Fees can be added later in the dashboard (Settings → Cancellation & rescheduling).
+    placeholder: false,
+    value: { freeCancelHours: 24, lateCancelFeePercent: 0, noShowFeePercent: 0, rescheduleDeadlineHours: 24 },
   }),
   setting({
     key: "paymentDefaults",
@@ -47,14 +48,13 @@ export const seedSettings = [
   }),
   setting({
     key: "vouchers",
-    placeholder: true, // PLACEHOLDER: confirm voucher prices and expiry (Calendly currently shows £45/£65/£95)
-    placeholderNote: "Brief placeholders: 30 min £35 / 60 min £60 / 90 min £85, 12-month expiry.",
+    placeholder: false, // confirmed 2026-11-01: £45 / £65 / £95 (as on Calendly)
     value: {
-      expiryMonths: 12,
+      expiryMonths: 12, // PLACEHOLDER: confirm how long gift vouchers last (12 months assumed)
       products: [
-        { id: "voucher-30", name: "30 Minute Massage E-Gift Voucher", minutes: 30, pricePence: 3500, active: true },
-        { id: "voucher-60", name: "60 Minute Massage E-Gift Voucher", minutes: 60, pricePence: 6000, active: true },
-        { id: "voucher-90", name: "90 Minute Massage E-Gift Voucher", minutes: 90, pricePence: 8500, active: true },
+        { id: "voucher-30", name: "30 Minute Massage E-Gift Voucher", minutes: 30, pricePence: 4500, active: true },
+        { id: "voucher-60", name: "60 Minute Massage E-Gift Voucher", minutes: 60, pricePence: 6500, active: true },
+        { id: "voucher-90", name: "90 Minute Massage E-Gift Voucher", minutes: 90, pricePence: 9500, active: true },
       ],
     },
   }),
@@ -65,7 +65,7 @@ export const seedSettings = [
       packages: false,
       insuranceBookings: false,
       clinicalNotes: false,
-      smsReminders: true,
+      smsReminders: false, // off at launch (no Twilio account yet); turn on once Twilio keys are in Vercel
       homeVisits: true,
       googleCalendarSync: true,
     },
@@ -94,10 +94,9 @@ export const seedSettings = [
 ] as const satisfies readonly SeedSetting[];
 
 /**
- * Service catalogue. Prices confirmed from Calendly; durations are placeholders.
+ * Service catalogue. Prices and durations confirmed by the client (2026-11-01).
  * IDs are stable — never rename an ID, archive the service and add a new one instead.
  */
-const durationPlaceholder = "Duration is a placeholder — confirm with client.";
 
 export const seedServices: SeedService[] = [
   {
@@ -118,8 +117,7 @@ export const seedServices: SeedService[] = [
     availableAtHome: true,
     featured: true,
     sortOrder: 10,
-    placeholder: true,
-    placeholderNote: durationPlaceholder,
+    placeholder: false,
   },
   {
     id: "full-body-mot",
@@ -139,8 +137,7 @@ export const seedServices: SeedService[] = [
     availableAtHome: true,
     featured: false,
     sortOrder: 20,
-    placeholder: true,
-    placeholderNote: durationPlaceholder,
+    placeholder: false,
   },
   {
     id: "sports-massage",
@@ -160,8 +157,7 @@ export const seedServices: SeedService[] = [
     availableAtHome: true,
     featured: true,
     sortOrder: 30,
-    placeholder: true,
-    placeholderNote: durationPlaceholder,
+    placeholder: false,
   },
   {
     id: "assisted-stretching",
@@ -181,8 +177,7 @@ export const seedServices: SeedService[] = [
     availableAtHome: true,
     featured: false,
     sortOrder: 40,
-    placeholder: true,
-    placeholderNote: durationPlaceholder,
+    placeholder: false,
   },
   {
     id: "dry-cupping",
@@ -202,8 +197,7 @@ export const seedServices: SeedService[] = [
     availableAtHome: true,
     featured: false,
     sortOrder: 50,
-    placeholder: true,
-    placeholderNote: durationPlaceholder,
+    placeholder: false,
   },
   {
     id: "compression-boots",
@@ -223,8 +217,7 @@ export const seedServices: SeedService[] = [
     availableAtHome: false,
     featured: false,
     sortOrder: 60,
-    placeholder: true,
-    placeholderNote: `${durationPlaceholder} Calendly lists this as 20 minutes.`,
+    placeholder: false,
   },
   {
     id: "compression-boots-extended",
@@ -244,8 +237,7 @@ export const seedServices: SeedService[] = [
     availableAtHome: false,
     featured: false,
     sortOrder: 70,
-    placeholder: true,
-    placeholderNote: durationPlaceholder,
+    placeholder: false,
   },
 ];
 

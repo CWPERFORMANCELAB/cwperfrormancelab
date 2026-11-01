@@ -8,7 +8,7 @@ import { beginCheckout, cancelBooking, confirmBooking, createHold, rescheduleBoo
 import { availabilityForRange } from "@/lib/availability";
 import { getService, loadSettings } from "@/lib/settings";
 import { addMinutes } from "@/lib/time";
-import { freshDb, MON } from "./helpers";
+import { freshDb, MON, withFees, withSms } from "./helpers";
 import { at, details, NOW } from "./fixtures";
 
 let db: Db;
@@ -88,6 +88,7 @@ describe("double-booking prevention", () => {
 
 describe("booking flow", () => {
   it("hold → details → mock checkout → confirm, with notifications queued", async () => {
+    await withSms(db);
     const { booking, holdToken } = await createHold(db, { serviceId: "injury-assessment", startsAt: at(MON, "10:00"), now: NOW });
     const r = await submitDetails(db, booking.id, holdToken, details(), NOW);
     expect(r.quote).toMatchObject({ pricePence: 6500, chargeNowPence: 6500, checkout: "payment" });
@@ -170,6 +171,7 @@ describe("cancel & reschedule", () => {
   });
 
   it("late cancellation keeps 50% and refunds the rest", async () => {
+    await withFees(db, 50);
     const b = await confirmed();
     const r = await cancelBooking(db, b.id, { actor: "client", now: at(MON, "00:00") });
     expect(r).toMatchObject({ late: true, feePence: 3250, refundedPence: 3250 });

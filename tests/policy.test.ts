@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { canReschedule, clientCancellation, noShow, policySummary, practitionerCancellation } from "@/lib/policy";
+import { seedSettings } from "@config/seed-settings";
+import { canReschedule, clientCancellation, noShow, noShowSummary, policySummary, practitionerCancellation } from "@/lib/policy";
 
 const policy = { freeCancelHours: 24, lateCancelFeePercent: 50, noShowFeePercent: 50, rescheduleDeadlineHours: 24 };
 const start = new Date("2027-01-11T10:00:00Z");
@@ -70,4 +71,16 @@ describe("rescheduling", () => {
 it("summarises the policy from settings", () => {
   expect(policySummary(policy)).toContain("Free cancellation up to 24 hours");
   expect(policySummary(policy)).toContain("50%");
+  expect(noShowSummary(policy)).toContain("50% of the session price");
+});
+
+it("with no fees, never implies a charge (launch policy, 2026-11-01)", () => {
+  const free = { ...policy, lateCancelFeePercent: 0, noShowFeePercent: 0 };
+  expect(policySummary(free)).toMatch(/^Cancel free of charge for a full refund/);
+  expect(policySummary(free)).not.toMatch(/%|fee|charged/);
+  expect(noShowSummary(free)).not.toMatch(/%|fee/);
+  // The launch settings really are fee-free, and SMS (no Twilio yet) is off.
+  const launch = seedSettings.find((x) => x.key === "cancellationPolicy")!.value as typeof policy;
+  expect(launch).toMatchObject({ lateCancelFeePercent: 0, noShowFeePercent: 0 });
+  expect((seedSettings.find((x) => x.key === "features")!.value as { smsReminders: boolean }).smsReminders).toBe(false);
 });
